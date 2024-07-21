@@ -33,7 +33,27 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    # my app
+    'accounts',
+    'users',
+    'cal',
+    # django-rest-framework
+    'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
+    # dj-rest-auth
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+    'rest_framework.authtoken',
+    # django-allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.kakao',
 ]
+
+SITE_ID = 1
+AUTH_USER_MODEL = 'accounts.User' 
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

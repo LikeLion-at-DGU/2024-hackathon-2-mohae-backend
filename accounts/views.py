@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import json
 import requests
 from django.shortcuts import redirect, render
@@ -133,3 +134,8 @@ class KakaoLogin(SocialLoginView):
     adapter_class = kakao_view.KakaoOAuth2Adapter
     client_class = OAuth2Client
     callback_url = KAKAO_CALLBACK_URI
+=======
+from django.shortcuts import render
+
+# Create your views here.
+>>>>>>> 9157c2d40cd1bcd399afdf52c37cc0dfe1606657

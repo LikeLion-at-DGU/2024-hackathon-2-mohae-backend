@@ -8,7 +8,6 @@ from .models import CulturalActivity, Reservation
 from .serializers import CulturalActivitySerializer, ReservationSerializer
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])  # 이 엔드포인트에 접근하려면 인증이 필요
 def cultural_activities(request):
     activities = CulturalActivity.objects.filter(status='Y')
     activity_data = []

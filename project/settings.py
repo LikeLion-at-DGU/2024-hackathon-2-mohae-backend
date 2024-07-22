@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'accounts',
     'users',
     'cal',
+    'culture',
     # django-rest-framework
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',

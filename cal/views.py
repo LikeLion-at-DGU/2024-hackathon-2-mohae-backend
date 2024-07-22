@@ -38,15 +38,15 @@ def event_detail(request, pk):
         return Response(serializer.data)
 
 # 일정 수정 (Update)
-@api_view(['PUT'])
+@api_view(['PATCH'])
 def update_event(request, pk):
     try:
         event = get_object_or_404(Calendar, pk=pk)
     except Calendar.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == 'PUT':
-        serializer = CalendarSerializer(event, data=request.data)
+    if request.method == 'PACTH':
+        serializer = CalendarSerializer(event, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

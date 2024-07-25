@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'users',
     'cal',
     'culture',
+    'gallery',
     # django-rest-framework
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
@@ -169,3 +170,7 @@ KAKAO_CALLBACK_URI = BASE_URL + 'accounts/kakao/login/callback/'  # 카카오 �
 KAKAO_REST_API_KEY = secrets.get('KAKAO_REST_API_KEY', 'YOUR_KAKAO_REST_API_KEY')  # secrets.json에서 가져올 수 있도록 설정
 
 state = secrets.get('STATE', 'RANDOM_STRING')  # 상태 값 설정
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

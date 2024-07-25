@@ -1,7 +1,11 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CulturalActivityViewSet, MyReservationsViewSet
+
+router = DefaultRouter()
+router.register('activities', CulturalActivityViewSet)
+router.register('my_reservations', MyReservationsViewSet, basename='my_reservations')
 
 urlpatterns = [
-    path('activities/', views.cultural_activities, name='cultural_activities'),
-    path('activities/<int:activity_id>/reserve/', views.reserve_activity, name='reserve_activity'),
+    path('', include(router.urls)),
 ]

@@ -32,7 +32,7 @@ class Video(models.Model):
     video = models.FileField(upload_to='videos/')
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(maxlength=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
+    status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
 
     def __str__(self):
         return f'{self.user.nickname} - {self.description[:20]}'

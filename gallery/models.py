@@ -52,3 +52,15 @@ class Comment(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='favorites', null=True, blank=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='favorites', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'photo'), ('user', 'video')
+
+    def __str__(self):
+        return f'{self.user.nickname} - {self.photo or self.video}'

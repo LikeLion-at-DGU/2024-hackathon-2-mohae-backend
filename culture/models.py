@@ -38,3 +38,14 @@ class ConfirmedReservation(models.Model):
 
     def __str__(self):
         return f"Confirmed reservation for {self.reservation.activity.title} by {self.reservation.user.email}"
+
+class Like(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    activity = models.ForeignKey(CulturalActivity, on_delete=models.CASCADE)
+    liked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'activity')
+
+    def __str__(self):
+        return f"{self.user.email} likes {self.activity.title}"

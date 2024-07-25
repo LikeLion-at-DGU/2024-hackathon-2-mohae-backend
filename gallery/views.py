@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Album, Photo, Video, Like, Comment
-from .serializers import AlbumSerializer, PhotoSerializer, VideoSerializer, LikeSerializer, CommentSerializer
+from .models import Album, Photo, Video, Like, Comment, Favorite
+from .serializers import AlbumSerializer, PhotoSerializer, VideoSerializer, LikeSerializer, CommentSerializer, FavoriteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import models
@@ -61,6 +61,20 @@ class PhotoViewSet(viewsets.ModelViewSet):
         Like.objects.filter(user=request.user, photo=photo).delete()
         return Response({'status': 'Photo unliked'})
 
+    @action(detail=True, methods=['post'])
+    def favorite(self, request, pk=None):
+        photo = self.get_object()
+        favorite, created = Favorite.objects.get_or_create(user=request.user, photo=photo)
+        if not created:
+            return Response({'status': 'Already in favorites'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'Photo added to favorites'})
+
+    @action(detail=True, methods=['post'])
+    def unfavorite(self, request, pk=None):
+        photo = self.get_object()
+        Favorite.objects.filter(user=request.user, photo=photo).delete()
+        return Response({'status': 'Photo removed from favorites'})
+
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
@@ -102,6 +116,20 @@ class VideoViewSet(viewsets.ModelViewSet):
         Like.objects.filter(user=request.user, video=video).delete()
         return Response({'status': 'Video unliked'})
 
+    @action(detail=True, methods=['post'])
+    def favorite(self, request, pk=None):
+        video = self.get_object()
+        favorite, created = Favorite.objects.get_or_create(user=request.user, video=video)
+        if not created:
+            return Response({'status': 'Already in favorites'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'Video added to favorites'})
+
+    @action(detail=True, methods=['post'])
+    def unfavorite(self, request, pk=None):
+        video = self.get_object()
+        Favorite.objects.filter(user=request.user, video=video).delete()
+        return Response({'status': 'Video removed from favorites'})
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -122,3 +150,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         if video and video.album.family != self.request.user.family:
             return Response({'error': 'You do not have permission to comment on this video.'}, status=status.HTTP_403_FORBIDDEN)
         serializer.save(user=self.request.user)
+
+class FavoriteViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)

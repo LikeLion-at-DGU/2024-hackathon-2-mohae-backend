@@ -1,9 +1,10 @@
+from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import CulturalActivity, Reservation, ConfirmedReservation
+from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
 from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer
 
 class CulturalActivityViewSet(viewsets.ModelViewSet):
@@ -33,9 +34,41 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         serializer = ReservationSerializer(reservation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def like(self, request, pk=None):
+        activity = self.get_object()
+        user = request.user
+
+        like, created = Like.objects.get_or_create(activity=activity, user=user)
+        if not created:
+            return Response({'message': '이미 좋아요를 눌렀습니다.'}, status=status.HTTP_200_OK)
+        
+        return Response({'message': '좋아요가 추가되었습니다.'}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def unlike(self, request, pk=None):
+        activity = self.get_object()
+        user = request.user
+
+        like = Like.objects.filter(activity=activity, user=user).first()
+        if like:
+            like.delete()
+            return Response({'message': '좋아요가 취소되었습니다.'}, status=status.HTTP_200_OK)
+        
+        return Response({'message': '좋아요를 누르지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
 class MyReservationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ConfirmedReservationSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return ConfirmedReservation.objects.filter(reservation__user=self.request.user)
+
+class MyLikesViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CulturalActivitySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        liked_activities = Like.objects.filter(user=user).values_list('activity', flat=True)
+        return CulturalActivity.objects.filter(id__in=liked_activities)

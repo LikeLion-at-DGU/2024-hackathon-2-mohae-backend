@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'cal',
     'culture',
     'api',
+    'gallery',
     # django-rest-framework
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
@@ -193,3 +194,8 @@ KAKAO_CLIENT_SECRET = secrets.get('KAKAO_CLIENT_SECRET', 'YOUR_KAKAO_CLIENT_SECR
 OPENAI_API_KEY = env('OPENAI_API_KEY')  # 환경 변수에서 가져온 OpenAI API 키 설정
 
 state = secrets.get('STATE', 'RANDOM_STRING')  # 상태 값 설정
+
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

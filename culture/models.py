@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from users.models import Family
 
 class CulturalActivity(models.Model):
     type = models.CharField(max_length=255, null=False)
@@ -8,7 +7,7 @@ class CulturalActivity(models.Model):
     description = models.TextField(null=True, blank=True)
     date = models.DateTimeField(null=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    family = models.ForeignKey(Family, on_delete=models.CASCADE)
+    family = models.ForeignKey('users.Family', on_delete=models.CASCADE)  # 문자열로 참조하여 순환 참조 피하기
     price = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     available_slots = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)

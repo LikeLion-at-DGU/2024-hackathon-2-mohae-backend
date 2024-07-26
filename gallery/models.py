@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from users.models import Family
 
 User = get_user_model()
 
@@ -9,7 +8,7 @@ class Album(models.Model):
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     shared = models.BooleanField(default=False)
-    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='albums', null=True, blank=True)
+    family = models.ForeignKey('users.Family', on_delete=models.CASCADE, related_name='albums', null=True, blank=True)
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
 
     def __str__(self):

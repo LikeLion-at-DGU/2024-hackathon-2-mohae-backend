@@ -22,14 +22,15 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
             return Response({'message': '예약 가능한 자원이 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 예약 중복 체크
-        reservation = Reservation.objects.filter(activity=activity, user=user).first()
-        if reservation:
+        reservation, created = Reservation.objects.get_or_create(activity=activity, user=user)
+        if not created:
+            if reservation.status == 'C':
+                return Response({'message': '이미 예약된 활동입니다.'}, status=status.HTTP_400_BAD_REQUEST)
             confirmed_reservation, created = ConfirmedReservation.objects.get_or_create(reservation=reservation)
             if not created:
                 return Response({'message': '이미 예약된 활동입니다. 예약이 확정되었습니다.', 'status': 'C'}, status=status.HTTP_200_OK)
             return Response({'message': '예약이 확정되었습니다.', 'status': 'C'}, status=status.HTTP_201_CREATED)
         
-        reservation = Reservation.objects.create(activity=activity, user=user)
         ConfirmedReservation.objects.create(reservation=reservation)
         serializer = ReservationSerializer(reservation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -41,7 +42,7 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
 
         like, created = Like.objects.get_or_create(activity=activity, user=user)
         if not created:
-            return Response({'message': '이미 좋아요를 눌렀습니다.'}, status=status.HTTP_200_OK)
+            return Response({'message': '이미 좋아요를 눌렀습니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response({'message': '좋아요가 추가되었습니다.'}, status=status.HTTP_201_CREATED)
 
@@ -56,6 +57,7 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
             return Response({'message': '좋아요가 취소되었습니다.'}, status=status.HTTP_200_OK)
         
         return Response({'message': '좋아요를 누르지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class MyReservationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ConfirmedReservationSerializer

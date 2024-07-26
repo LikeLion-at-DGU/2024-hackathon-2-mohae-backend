@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import models
 from users.models import Family
+from rest_framework.exceptions import PermissionDenied
 
 class AlbumViewSet(viewsets.ModelViewSet):
     queryset = Album.objects.all()
@@ -35,19 +36,19 @@ class PhotoViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         photo = self.get_object()
         if photo.user != self.request.user:
-            return Response({'error': 'You do not have permission to edit this photo.'}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied('편집권한x')
         serializer.save()
 
     def perform_destroy(self, instance):
         if instance.user != self.request.user:
-            return Response({'error': 'You do not have permission to delete this photo.'}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied('삭제권한x')
         instance.delete()
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         photo = self.get_object()
         if photo.album.family != request.user.family:
-            return Response({'error': 'You do not have permission to like this photo.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': '좋아요 권한 x'}, status=status.HTTP_403_FORBIDDEN)
         like, created = PhotoVideoLike.objects.get_or_create(user=request.user, photo=photo)
         if not created:
             return Response({'status': 'Already liked'}, status=status.HTTP_400_BAD_REQUEST)
@@ -57,7 +58,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
     def unlike(self, request, pk=None):
         photo = self.get_object()
         if photo.album.family != request.user.family:
-            return Response({'error': 'You do not have permission to unlike this photo.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': '좋아요 취소 권한 x'}, status=status.HTTP_403_FORBIDDEN)
         PhotoVideoLike.objects.filter(user=request.user, photo=photo).delete()
         return Response({'status': 'Photo unliked'})
 
@@ -75,6 +76,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
         Favorite.objects.filter(user=request.user, photo=photo).delete()
         return Response({'status': 'Photo removed from favorites'})
 
+
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
@@ -90,19 +92,19 @@ class VideoViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         video = self.get_object()
         if video.user != self.request.user:
-            return Response({'error': 'You do not have permission to edit this video.'}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied('편집권한 x')
         serializer.save()
 
     def perform_destroy(self, instance):
         if instance.user != self.request.user:
-            return Response({'error': 'You do not have permission to delete this video.'}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied('삭제권한 x')
         instance.delete()
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         video = self.get_object()
         if video.album.family != request.user.family:
-            return Response({'error': 'You do not have permission to like this video.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': '좋아요 권한 x'}, status=status.HTTP_403_FORBIDDEN)
         like, created = PhotoVideoLike.objects.get_or_create(user=request.user, video=video)
         if not created:
             return Response({'status': 'Already liked'}, status=status.HTTP_400_BAD_REQUEST)
@@ -112,7 +114,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     def unlike(self, request, pk=None):
         video = self.get_object()
         if video.album.family != request.user.family:
-            return Response({'error': 'You do not have permission to unlike this video.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': '좋아요 취소 권한 x'}, status=status.HTTP_403_FORBIDDEN)
         PhotoVideoLike.objects.filter(user=request.user, video=video).delete()
         return Response({'status': 'Video unliked'})
 
@@ -130,6 +132,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         Favorite.objects.filter(user=request.user, video=video).delete()
         return Response({'status': 'Video removed from favorites'})
 
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -146,9 +149,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         photo = serializer.validated_data.get('photo', None)
         video = serializer.validated_data.get('video', None)
         if photo and photo.album.family != self.request.user.family:
-            return Response({'error': 'You do not have permission to comment on this photo.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': '댓글권한 x'}, status=status.HTTP_403_FORBIDDEN)
         if video and video.album.family != self.request.user.family:
-            return Response({'error': 'You do not have permission to comment on this video.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': '댓글 권한 x'}, status=status.HTTP_403_FORBIDDEN)
         serializer.save(user=self.request.user)
 
 class FavoriteViewSet(viewsets.ReadOnlyModelViewSet):

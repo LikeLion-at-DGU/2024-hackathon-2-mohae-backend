@@ -2,6 +2,7 @@
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import BucketList, Family
@@ -20,6 +21,7 @@ class BucketListViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, family=self.request.user.family)
+
 
 class MyPageViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -55,7 +57,21 @@ class MyPageViewSet(viewsets.ViewSet):
         except Like.DoesNotExist:
             return Response({'error': 'Like not found'}, status=404)
 
+
 class FamilyViewSet(viewsets.ModelViewSet):
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_update(self, serializer):
+        family = self.get_object()
+        if family.created_by != self.request.user:
+            raise PermissionDenied('편집 권한이 없습니다.')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        family = self.get_object()
+        if family.created_by != self.request.user:
+            raise PermissionDenied('삭제 권한이 없습니다.')
+        instance.delete()
+

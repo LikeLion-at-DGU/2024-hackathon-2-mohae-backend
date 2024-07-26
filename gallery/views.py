@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Album, Photo, Video, Like, Comment, Favorite
-from .serializers import AlbumSerializer, PhotoSerializer, VideoSerializer, LikeSerializer, CommentSerializer, FavoriteSerializer
+from .models import Album, Photo, Video, PhotoVideoLike, Comment, Favorite
+from .serializers import AlbumSerializer, PhotoSerializer, VideoSerializer, PhotoVideoLikeSerializer, CommentSerializer, FavoriteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import models
@@ -48,7 +48,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
         photo = self.get_object()
         if photo.album.family != request.user.family:
             return Response({'error': 'You do not have permission to like this photo.'}, status=status.HTTP_403_FORBIDDEN)
-        like, created = Like.objects.get_or_create(user=request.user, photo=photo)
+        like, created = PhotoVideoLike.objects.get_or_create(user=request.user, photo=photo)
         if not created:
             return Response({'status': 'Already liked'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'status': 'Photo liked'})
@@ -58,7 +58,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
         photo = self.get_object()
         if photo.album.family != request.user.family:
             return Response({'error': 'You do not have permission to unlike this photo.'}, status=status.HTTP_403_FORBIDDEN)
-        Like.objects.filter(user=request.user, photo=photo).delete()
+        PhotoVideoLike.objects.filter(user=request.user, photo=photo).delete()
         return Response({'status': 'Photo unliked'})
 
     @action(detail=True, methods=['post'])
@@ -103,7 +103,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         video = self.get_object()
         if video.album.family != request.user.family:
             return Response({'error': 'You do not have permission to like this video.'}, status=status.HTTP_403_FORBIDDEN)
-        like, created = Like.objects.get_or_create(user=request.user, video=video)
+        like, created = PhotoVideoLike.objects.get_or_create(user=request.user, video=video)
         if not created:
             return Response({'status': 'Already liked'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'status': 'Video liked'})
@@ -113,7 +113,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         video = self.get_object()
         if video.album.family != request.user.family:
             return Response({'error': 'You do not have permission to unlike this video.'}, status=status.HTTP_403_FORBIDDEN)
-        Like.objects.filter(user=request.user, video=video).delete()
+        PhotoVideoLike.objects.filter(user=request.user, video=video).delete()
         return Response({'status': 'Video unliked'})
 
     @action(detail=True, methods=['post'])

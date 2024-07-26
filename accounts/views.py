@@ -23,14 +23,16 @@ state = getattr(settings, 'STATE')
 def login(request):
     return render(request, 'accounts/logintest.html')
 
+    
 def kakao_login(request):
-    rest_api_key = settings.KAKAO_REST_API_KEY  # 여기서 KAKAO_REST_API_KEY를 settings에서 가져옴
+    rest_api_key = getattr(settings, 'KAKAO_REST_API_KEY')
     return redirect(
         f"https://kauth.kakao.com/oauth/authorize?client_id={rest_api_key}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code&prompt=login"
     )
 
+
 def kakao_callback(request):
-    rest_api_key = settings.KAKAO_REST_API_KEY  # 여기서 KAKAO_REST_API_KEY를 settings에서 가져옴
+    rest_api_key = getattr(settings, 'KAKAO_REST_API_KEY')
     code = request.GET.get("code")
     print("code : " , code)
     redirect_uri = KAKAO_CALLBACK_URI
@@ -129,7 +131,9 @@ def kakao_callback(request):
         accept_json['userinfo'] = userinfo
         return JsonResponse(accept_json)
 
+
 class KakaoLogin(SocialLoginView):
     adapter_class = kakao_view.KakaoOAuth2Adapter
     client_class = OAuth2Client
     callback_url = KAKAO_CALLBACK_URI
+

@@ -36,10 +36,10 @@ class Video(models.Model):
     def __str__(self):
         return f'{self.user.nickname} - {self.description[:20]}'
 
-class Like(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
-    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='likes', null=True, blank=True)
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='likes', null=True, blank=True)
+class PhotoVideoLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='photo_video_likes')
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='photo_video_likes', null=True, blank=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='photo_video_likes', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from users.models import Family
+import uuid
 # Create your models here.
 
 class Calendar(models.Model):
@@ -18,3 +19,13 @@ class Calendar(models.Model):
 
     def __str__(self):
         return self.title  # 객체를 문자열로 표현할 때 일정 제목 반환
+    
+class FamilyInvitation(models.Model):
+    code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    family = models.ForeignKey(Family, on_delete=models.CASCADE)
+    invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.code)

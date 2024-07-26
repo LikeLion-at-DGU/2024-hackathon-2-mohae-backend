@@ -7,4 +7,6 @@ urlpatterns = [
     path('calendar/create/', views.create_event, name='create_event'),  # 일정 생성
     path('calendar/update/<int:pk>/', views.update_event, name='update_event'),  # 일정 수정
     path('calendar/delete/<int:pk>/', views.delete_event, name='delete_event'),  # 일정 삭제
+    path('invitations/', views.create_invitation, name='create_invitation'),
+    path('invitations/accept/', views.accept_invitation, name='accept_invitation'),
 ]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CulturalActivity, Reservation, ConfirmedReservation
+from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
 
 class CulturalActivitySerializer(serializers.ModelSerializer):
     reservation_status = serializers.SerializerMethodField()
@@ -20,4 +20,9 @@ class ReservationSerializer(serializers.ModelSerializer):
 class ConfirmedReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConfirmedReservation
+        fields = '__all__'
+
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
         fields = '__all__'

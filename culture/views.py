@@ -5,7 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
-from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer
+from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer,LikeSerializer
+
+from rest_framework.exceptions import ValidationError
 
 class CulturalActivityViewSet(viewsets.ModelViewSet):
     queryset = CulturalActivity.objects.filter(status='Y')
@@ -17,7 +19,7 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         user = request.user
 
         # 예약 가능한 자원의 수 확인
-        confirmed_reservations_count = ConfirmedReservation.objects.filter(reservation__activity=activity).count()
+        confirmed_reservations_count = Reservation.objects.filter(activity=activity, status='C').count()
         if confirmed_reservations_count >= activity.available_slots:
             return Response({'message': '예약 가능한 자원이 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -26,21 +28,30 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         if not created:
             if reservation.status == 'C':
                 return Response({'message': '이미 예약된 활동입니다.'}, status=status.HTTP_400_BAD_REQUEST)
-            confirmed_reservation, created = ConfirmedReservation.objects.get_or_create(reservation=reservation)
-            if not created:
-                return Response({'message': '이미 예약된 활동입니다. 예약이 확정되었습니다.', 'status': 'C'}, status=status.HTTP_200_OK)
-            return Response({'message': '예약이 확정되었습니다.', 'status': 'C'}, status=status.HTTP_201_CREATED)
+            else:
+                # 예약이 존재하지만 확정되지 않은 경우 상태를 확인하고 처리
+                reservation.status = 'C'
+                reservation.save()
+                ConfirmedReservation.objects.create(reservation=reservation)
+                return Response({'message': '예약이 확정되었습니다.', 'status': 'C'}, status=status.HTTP_200_OK)
         
-        ConfirmedReservation.objects.create(reservation=reservation)
+        try:
+            ConfirmedReservation.objects.create(reservation=reservation)
+        except Exception as e:
+            raise ValidationError({'message': '예약 확정 중 오류가 발생했습니다.', 'details': str(e)})
+
+        reservation.status = 'C'
+        reservation.save()
         serializer = ReservationSerializer(reservation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def like(self, request, pk=None):
         activity = self.get_object()
         user = request.user
 
-        like, created = Like.objects.get_or_create(activity=activity, user=user)
+        like_instance, created = Like.objects.get_or_create(activity=activity, user=user)
         if not created:
             return Response({'message': '이미 좋아요를 눌렀습니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -74,3 +85,4 @@ class MyLikesViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
         liked_activities = Like.objects.filter(user=user).values_list('activity', flat=True)
         return CulturalActivity.objects.filter(id__in=liked_activities)
+    

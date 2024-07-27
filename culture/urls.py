@@ -7,6 +7,7 @@ router.register('activities', CulturalActivityViewSet)
 router.register('my_reservations', MyReservationsViewSet, basename='my_reservations')
 router.register('my_likes', MyLikesViewSet, basename='my_likes')
 
+
 urlpatterns = [
     path('', include(router.urls)),
 ]

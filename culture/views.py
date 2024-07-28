@@ -3,7 +3,6 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
 from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer,LikeSerializer
 
@@ -51,7 +50,7 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         activity = self.get_object()
         user = request.user
 
-        like_instance, created = Like.objects.get_or_create(activity=activity, user=user)
+        like, created = Like.objects.get_or_create(activity=activity, user=user)
         if not created:
             return Response({'message': '이미 좋아요를 눌렀습니다.'}, status=status.HTTP_400_BAD_REQUEST)
         

@@ -3,12 +3,12 @@ from rest_framework.routers import DefaultRouter
 from .views import BucketListViewSet, MyPageViewSet, FamilyViewSet, FamilyInvitationViewSet
 
 router = DefaultRouter()
-router.register('bucketlists', BucketListViewSet, name='bucketlists')
-router.register('family', FamilyViewSet, name='family')
-router.register('invitations', FamilyInvitationViewSet, name='invitations')
+router.register('bucketlists', BucketListViewSet, basename='bucketlists')
+router.register('family', FamilyViewSet, basename='family')
+router.register('invitations', FamilyInvitationViewSet, basename='invitations')
 
 mypage_router = DefaultRouter()
-mypage_router.register('mypage', MyPageViewSet, name='mypage')
+mypage_router.register('mypage', MyPageViewSet, basename='mypage')
 
 urlpatterns = [
     path('', include(router.urls)),

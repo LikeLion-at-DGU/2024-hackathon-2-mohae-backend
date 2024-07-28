@@ -43,9 +43,6 @@ class Like(models.Model):
     activity = models.ForeignKey(CulturalActivity, on_delete=models.CASCADE)
     liked_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ('user', 'activity')
-
     def __str__(self):
         return f"{self.user.email} likes {self.activity.title}"
     

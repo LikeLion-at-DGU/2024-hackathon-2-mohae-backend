@@ -14,7 +14,7 @@ class Family(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='Y')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)  # 일관성 있게 User 사용
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE,default=1 )  # 일관성 있게 User 사용
     
     def __str__(self):
         return self.family_name

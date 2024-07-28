@@ -3,9 +3,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
-from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer,LikeSerializer
-
+from .models import CulturalActivity, Reservation, ConfirmedReservation, Like, Category, SubCategory
+from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer, LikeSerializer, CategorySerializer, SubCategorySerializer
 from rest_framework.exceptions import ValidationError
 
 class CulturalActivityViewSet(viewsets.ModelViewSet):
@@ -44,7 +43,6 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         serializer = ReservationSerializer(reservation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def like(self, request, pk=None):
         activity = self.get_object()
@@ -68,7 +66,6 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         
         return Response({'message': '좋아요를 누르지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class MyReservationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ConfirmedReservationSerializer
     permission_classes = [IsAuthenticated]
@@ -84,4 +81,11 @@ class MyLikesViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
         liked_activities = Like.objects.filter(user=user).values_list('activity', flat=True)
         return CulturalActivity.objects.filter(id__in=liked_activities)
-    
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+class SubCategoryViewSet(viewsets.ModelViewSet):
+    queryset = SubCategory.objects.all()
+    serializer_class = SubCategorySerializer

@@ -58,8 +58,5 @@ class Favorite(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='favorites', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ('user', 'photo'), ('user', 'video')
-
     def __str__(self):
-        return f'{self.user.nickname} - {self.photo or self.video}'
+        return f'{self.user.nickname if hasattr(self.user, "nickname") else self.user.username} - {self.photo or self.video}'

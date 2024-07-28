@@ -10,4 +10,5 @@ urlpatterns = [
     path('culture/', include('culture.urls')),
     path('gallery/',include('gallery.urls')),
     path('api/', include('api.urls')),
+    path('users/',include('users.urls')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

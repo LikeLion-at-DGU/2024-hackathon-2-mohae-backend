@@ -1,7 +1,5 @@
-# user/serializers.py
-
 from rest_framework import serializers
-from .models import BucketList, Family
+from .models import BucketList, Family, FamilyInvitation
 from culture.models import Like, CulturalActivity, ConfirmedReservation
 
 class BucketListSerializer(serializers.ModelSerializer):
@@ -12,6 +10,11 @@ class BucketListSerializer(serializers.ModelSerializer):
 class FamilySerializer(serializers.ModelSerializer):
     class Meta:
         model = Family
+        fields = '__all__'
+
+class FamilyInvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FamilyInvitation
         fields = '__all__'
 
 class CulturalActivitySerializer(serializers.ModelSerializer):

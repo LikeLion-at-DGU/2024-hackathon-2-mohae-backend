@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Album, Photo, Video, PhotoVideoLike, Comment, Favorite
-from .serializers import AlbumSerializer, PhotoSerializer, VideoSerializer, PhotoVideoLikeSerializer, CommentSerializer, FavoriteSerializer
+from .models import *
+from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import models

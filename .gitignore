@@ -10,10 +10,6 @@ secrets.json
 __pycache__/
 local_settings.py
 db.sqlite3
-<<<<<<< HEAD
-secrets.json
-.env
-=======
 db.sqlite3-journal
 media
 
@@ -178,4 +174,3 @@ cython_debug/
 #.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/django
->>>>>>> 058df21612176bd822f2a02ba9bccfd01052badc

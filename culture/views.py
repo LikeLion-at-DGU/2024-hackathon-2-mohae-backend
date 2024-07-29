@@ -3,8 +3,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import CulturalActivity, Reservation, ConfirmedReservation, Like, Category, SubCategory
-from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer, LikeSerializer, CategorySerializer, SubCategorySerializer
+from .models import *
+from .serializers import *
 from rest_framework.exceptions import ValidationError
 
 class CulturalActivityViewSet(viewsets.ModelViewSet):

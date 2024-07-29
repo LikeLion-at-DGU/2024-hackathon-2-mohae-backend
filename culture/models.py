@@ -25,8 +25,8 @@ class CulturalActivity(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
-    category = models.ForeignKey(Category, related_name='activities', on_delete=models.CASCADE, default=1)
-    subcategory = models.ForeignKey(SubCategory, related_name='activities', on_delete=models.CASCADE, default=1)
+    category = models.ForeignKey(Category, related_name='activities', on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(SubCategory, related_name='activities', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title

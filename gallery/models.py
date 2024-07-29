@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from users.models import Family
 
 User = get_user_model()
 
@@ -8,7 +9,7 @@ class Album(models.Model):
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     shared = models.BooleanField(default=False)
-    family = models.ForeignKey('users.Family', on_delete=models.CASCADE, related_name='albums', null=True, blank=True)
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='albums', null=True, blank=True)
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
 
     def __str__(self):
@@ -23,7 +24,7 @@ class Photo(models.Model):
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
 
     def __str__(self):
-        return f'{self.user.nickname} - {self.description[:20]}'
+        return f'{self.user.username} - {self.description[:20]}'
 
 class Video(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='videos')
@@ -34,7 +35,7 @@ class Video(models.Model):
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
 
     def __str__(self):
-        return f'{self.user.nickname} - {self.description[:20]}'
+        return f'{self.user.username} - {self.description[:20]}'
 
 class PhotoVideoLike(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='photo_video_likes')
@@ -59,4 +60,4 @@ class Favorite(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.user.nickname if hasattr(self.user, "nickname") else self.user.username} - {self.photo or self.video}'
+        return f'{self.user.username} - {self.photo or self.video}'

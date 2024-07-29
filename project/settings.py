@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'culture',
     'api',
     'gallery',
+    'health',
     # django-rest-framework
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
@@ -95,9 +96,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
 }
 
@@ -172,7 +174,7 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = False  # 타임존 지원 비활성화
+USE_TZ = True  # 타임존 지원 활성화로 바꿈 / 건강페이지 관련
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

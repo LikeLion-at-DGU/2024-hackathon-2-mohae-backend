@@ -6,11 +6,8 @@ router = DefaultRouter()
 router.register('bucketlists', BucketListViewSet, basename='bucketlists')
 router.register('family', FamilyViewSet, basename='family')
 router.register('invitations', FamilyInvitationViewSet, basename='invitations')
-
-mypage_router = DefaultRouter()
-mypage_router.register('mypage', MyPageViewSet, basename='mypage')
+router.register('mypage', MyPageViewSet, basename='mypage')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('', include(mypage_router.urls)),
 ]

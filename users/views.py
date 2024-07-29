@@ -3,11 +3,84 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import BucketList, Family, FamilyInvitation
-from .serializers import BucketListSerializer, FamilySerializer, FamilyInvitationSerializer, LikeSerializer, CulturalActivitySerializer, ConfirmedReservationSerializer
+from .models import *
+from .serializers import *
 from culture.models import Like, ConfirmedReservation, CulturalActivity
 from django.db.models import Q
 from accounts.models import User
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+import uuid
+
+
+class FamilyViewSet(viewsets.ModelViewSet):
+    queryset = Family.objects.all()
+    serializer_class = FamilySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(members=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        family = self.get_object()
+        if family.created_by != self.request.user:
+            raise PermissionDenied('편집 권한이 없습니다.')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        family = self.get_object()
+        if family.created_by != self.request.user:
+            raise PermissionDenied('삭제 권한이 없습니다.')
+        instance.delete()
+
+    @action(detail=True, methods=['post'])
+    def join(self, request, pk=None):
+        family = self.get_object()
+        FamilyMembership.objects.create(family=family, user=request.user)
+        return Response({'status': 'joined'})
+
+    @action(detail=False, methods=['post'])
+    def join_by_code(self, request):
+        code = request.data.get('invite_code')
+        family = get_object_or_404(Family, invite_code=code)
+        FamilyMembership.objects.create(family=family, user=request.user)
+        return Response({'status': 'joined'})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def invite(self, request, pk=None):
+        family = self.get_object()
+        try:
+            invited_user = User.objects.get(pk=request.data.get('user_id'))  # 초대할 사용자를 가져옴
+            expires_at = timezone.now() + timedelta(days=7)
+            code = uuid.uuid4()
+            FamilyInvitation.objects.create(family=family, invited_user=invited_user, invited_by=request.user, expires_at=expires_at, code=code)  # 초대 객체 생성
+            return Response({'status': '초대가 발송되었습니다.'})
+        except User.DoesNotExist:
+            return Response({'error': '사용자를 찾을 수 없습니다.'}, status=404)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def accept_invitation(self, request, pk=None):
+        try:
+            invitation = FamilyInvitation.objects.get(pk=pk, invited_user=request.user)
+            invitation.accepted = True
+            invitation.save()  # 초대 수락 상태로 업데이트
+            FamilyMembership.objects.create(family=invitation.family, user=request.user)
+            return Response({'status': '초대가 수락되었습니다.'})
+        except FamilyInvitation.DoesNotExist:
+            return Response({'error': '초대를 찾을 수 없습니다.'}, status=404)
+
+
+class FamilyInvitationViewSet(viewsets.ModelViewSet):
+    queryset = FamilyInvitation.objects.all()
+    serializer_class = FamilyInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(invited_user=self.request.user)  # 현재 요청한 사용자가 초대된 가족 초대 목록 필터링
+
 
 class BucketListViewSet(viewsets.ModelViewSet):
     queryset = BucketList.objects.all()
@@ -32,6 +105,7 @@ class BucketListViewSet(viewsets.ModelViewSet):
         if bucketlist.user != self.request.user:
             raise PermissionDenied('삭제 권한이 없습니다.')
         instance.delete()
+
 
 class MyPageViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -66,54 +140,3 @@ class MyPageViewSet(viewsets.ViewSet):
             return Response({'status': 'Like removed'})
         except Like.DoesNotExist:
             return Response({'error': 'Like not found'}, status=404)
-
-class FamilyViewSet(viewsets.ModelViewSet):
-    queryset = Family.objects.all()
-    serializer_class = FamilySerializer
-    permission_classes = [IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
-
-    def perform_update(self, serializer):
-        family = self.get_object()
-        if family.created_by != self.request.user:
-            raise PermissionDenied('편집 권한이 없습니다.')
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        family = self.get_object()
-        if family.created_by != self.request.user:
-            raise PermissionDenied('삭제 권한이 없습니다.')
-        instance.delete()
-
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def invite(self, request, pk=None):
-        family = self.get_object()
-        try:
-            invited_user = User.objects.get(pk=request.data.get('user_id')) # 초대할 사용자를 가져옴
-            FamilyInvitation.objects.create(family=family, invited_user=invited_user, invited_by=request.user) # 초대 객체 생성
-            return Response({'status': '초대가 발송되었습니다.'})
-        except User.DoesNotExist:
-            return Response({'error': '사용자를 찾을 수 없습니다.'}, status=404)
-
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def accept_invitation(self, request, pk=None):
-        try:
-            invitation = FamilyInvitation.objects.get(pk=pk, invited_user=request.user)
-            invitation.accepted = True
-            invitation.save() # 초대 수락 상태로 업데이트
-            request.user.family = invitation.family
-            request.user.save()
-            return Response({'status': '초대가 수락되었습니다.'})
-        except FamilyInvitation.DoesNotExist:
-            return Response({'error': '초대를 찾을 수 없습니다.'}, status=404) # 초대 객체를 찾을 수 없는 경우 오류 메시지 반환
-
-class FamilyInvitationViewSet(viewsets.ModelViewSet):
-    queryset = FamilyInvitation.objects.all()
-    serializer_class = FamilyInvitationSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(invited_user=self.request.user)  # 현재 요청한 사용자가 초대된 가족 초대 목록 필터링
-

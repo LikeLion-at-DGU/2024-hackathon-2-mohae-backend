@@ -5,8 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import *
 from .serializers import *
-from rest_framework.exceptions import ValidationError
 
+# 문화 활동 뷰셋
 class CulturalActivityViewSet(viewsets.ModelViewSet):
     queryset = CulturalActivity.objects.filter(status='Y')
     serializer_class = CulturalActivitySerializer
@@ -28,9 +28,12 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
                 return Response({'message': '이미 예약된 활동입니다.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 # 예약이 존재하지만 확정되지 않은 경우 상태를 확인하고 처리
-                reservation.status = 'C'
-                reservation.save()
-                ConfirmedReservation.objects.create(reservation=reservation)
+                try:
+                    reservation.status = 'C'
+                    reservation.save()
+                    ConfirmedReservation.objects.create(reservation=reservation)
+                except Exception as e:
+                    raise ValidationError({'message': '예약 확정 중 오류가 발생했습니다.', 'details': str(e)})
                 return Response({'message': '예약이 확정되었습니다.', 'status': 'C'}, status=status.HTTP_200_OK)
         
         try:
@@ -66,6 +69,7 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         
         return Response({'message': '좋아요를 누르지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
+# 사용자 예약 조회 뷰셋
 class MyReservationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ConfirmedReservationSerializer
     permission_classes = [IsAuthenticated]
@@ -73,6 +77,7 @@ class MyReservationsViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return ConfirmedReservation.objects.filter(reservation__user=self.request.user)
 
+# 사용자 좋아요 조회 뷰셋
 class MyLikesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CulturalActivitySerializer
     permission_classes = [IsAuthenticated]
@@ -82,10 +87,12 @@ class MyLikesViewSet(viewsets.ReadOnlyModelViewSet):
         liked_activities = Like.objects.filter(user=user).values_list('activity', flat=True)
         return CulturalActivity.objects.filter(id__in=liked_activities)
 
+# 카테고리 뷰셋
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+# 하위 카테고리 뷰셋
 class SubCategoryViewSet(viewsets.ModelViewSet):
     queryset = SubCategory.objects.all()
     serializer_class = SubCategorySerializer

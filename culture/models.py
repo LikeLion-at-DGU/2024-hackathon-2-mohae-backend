@@ -1,8 +1,20 @@
 from django.db import models
 from django.conf import settings
 
+class Category(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class SubCategory(models.Model):
+    category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
 class CulturalActivity(models.Model):
-    type = models.CharField(max_length=255, null=False)
     title = models.CharField(max_length=255, null=False)
     description = models.TextField(null=True, blank=True)
     date = models.DateTimeField(null=False)
@@ -13,6 +25,8 @@ class CulturalActivity(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
+    category = models.ForeignKey(Category, related_name='activities', on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(SubCategory, related_name='activities', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -45,4 +59,3 @@ class Like(models.Model):
 
     def __str__(self):
         return f"{self.user.email} likes {self.activity.title}"
-    

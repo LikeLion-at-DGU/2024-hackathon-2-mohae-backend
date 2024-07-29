@@ -1,22 +1,26 @@
-# cal/views.py
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import Calendar, FamilyInvitation
-from .serializers import CalendarSerializer, FamilyInvitationSerializer
+from .models import Calendar
+from users.models import Family
+from .serializers import CalendarSerializer
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from datetime import timedelta
 from django.contrib.auth import get_user_model
 from accounts.utils import send_kakao_message
+from rest_framework.permissions import IsAuthenticated
 
 User = get_user_model()
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_event(request):
-    serializer = CalendarSerializer(data=request.data)
+    serializer = CalendarSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
-        event = serializer.save()
+        family_id = request.data.get('family_id')
+        family = get_object_or_404(Family, pk=family_id)  # family_id가 유효한지 확인
+
+        event = serializer.save(created_by=request.user, family_id=family)
         access_token = request.user.kakao_access_token
         if access_token:
             send_kakao_message(access_token, f"새로운 일정이 추가되었습니다: {event.title}")
@@ -24,18 +28,21 @@ def create_event(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_events(request):
     events = Calendar.objects.all()
     serializer = CalendarSerializer(events, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def event_detail(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     serializer = CalendarSerializer(event)
     return Response(serializer.data)
 
 @api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
 def update_event(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     serializer = CalendarSerializer(event, data=request.data, partial=True)
@@ -45,37 +52,8 @@ def update_event(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_event(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     event.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
-
-@api_view(['POST'])
-def create_invitation(request):
-    family_id = request.data.get('family_id')
-    invited_by = request.user
-    expires_at = timezone.now() + timedelta(days=7)
-
-    invitation = FamilyInvitation.objects.create(
-        family_id_id=family_id,
-        invited_by=invited_by,
-        expires_at=expires_at
-    )
-
-    serializer = FamilyInvitationSerializer(invitation)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-@api_view(['POST'])
-def accept_invitation(request):
-    code = request.data.get('code')
-    try:
-        invitation = FamilyInvitation.objects.get(code=code, expires_at__gte=timezone.now())
-    except FamilyInvitation.DoesNotExist:
-        return Response({'error': 'Invalid or expired invitation code'}, status=status.HTTP_400_BAD_REQUEST)
-
-    family = invitation.family
-    user = request.user
-    user.family = family
-    user.save()
-
-    return Response({'status': 'Invitation accepted'}, status=status.HTTP_200_OK)

@@ -1,5 +1,7 @@
+# users/models.py
 from django.db import models
 from django.conf import settings
+import uuid
 
 User = settings.AUTH_USER_MODEL
 
@@ -14,11 +16,18 @@ class Family(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='Y')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE,default=1 )  # 일관성 있게 User 사용
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_families', default=1)
+    members = models.ManyToManyField(User, through='FamilyMembership', related_name='families')
+    invite_code = models.UUIDField(editable=False, unique=True, null=True)  # nullable로 설정
     
     def __str__(self):
         return self.family_name
-    
+
+class FamilyMembership(models.Model):
+    family = models.ForeignKey(Family, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    joined_at = models.DateTimeField(auto_now_add=True)
+
 class FamilyInvitation(models.Model):
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='invitations')
     invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitations')

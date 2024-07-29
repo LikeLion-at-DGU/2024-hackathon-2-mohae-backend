@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import BucketList, Family, FamilyInvitation
-from culture.models import Like, CulturalActivity, ConfirmedReservation
+from .models import *
+from culture.models import *
 
 class BucketListSerializer(serializers.ModelSerializer):
     class Meta:

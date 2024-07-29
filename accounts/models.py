@@ -29,6 +29,7 @@ class User(AbstractUser):
     nickname = models.CharField(unique=True, max_length=30)
     kakao_access_token = models.CharField(max_length=255, blank=True, null=True)  # 카카오 액세스 토큰 필드 추가
     jwt_token = models.CharField(max_length=255, blank=True, null=True)  # JWT 토큰 필드 추가
+    family = models.ForeignKey('users.Family', on_delete=models.CASCADE, related_name='users',null=True, blank=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 

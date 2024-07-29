@@ -1,13 +1,14 @@
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 import os
 import json
 import sys
 import environ
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-ROOT_DIR = os.path.dirname(BASE_DIR)
 SECRET_BASE_FILE = os.path.join(BASE_DIR, 'secrets.json')
 
 load_dotenv()
@@ -16,23 +17,28 @@ env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # OpenAI API 키 설정
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+OPENAI_API_KEY = env('OPENAI_API_KEY')
 
 # Load secrets
 with open(SECRET_BASE_FILE) as f:
     secrets = json.load(f)
 
-for key, value in secrets.items():
-    setattr(sys.modules[__name__], key, value)
+def get_secret(setting, secrets=secrets):
+    """Get the secret variable or return explicit exception."""
+    try:
+        return secrets[setting]
+    except KeyError:
+        error_msg = f"Set the {setting} environment variable"
+        raise ImproperlyConfigured(error_msg)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secrets.get('SECRET_KEY', 'django-insecure-xbsue#q#(h3coz*j99k&n@nj9f3y-r0a7%jvkwyfjm5gdua_1c')
+SECRET_KEY = get_secret('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG', default=False)
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -56,6 +62,7 @@ INSTALLED_APPS = [
     'culture',
     'api',
     'gallery',
+    'health',
     # django-rest-framework
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
@@ -95,9 +102,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
 }
 
@@ -172,7 +180,7 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = False  # 타임존 지원 비활성화
+USE_TZ = True  # 타임존 지원 활성화로 바꿈 / 건강페이지 관련
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
@@ -187,15 +195,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # 카카오 로그인 설정
 BASE_URL = 'http://127.0.0.1:8000'  # 기본 URL 설정
 KAKAO_CALLBACK_URI = BASE_URL + '/accounts/kakao/login/callback/'  # 카카오 로그인 콜백 URI 설정
-KAKAO_REST_API_KEY = secrets.get('KAKAO_REST_API_KEY', 'YOUR_KAKAO_REST_API_KEY')  # secrets.json에서 가져올 수 있도록 설정
-KAKAO_CLIENT_SECRET = secrets.get('KAKAO_CLIENT_SECRET', 'YOUR_KAKAO_CLIENT_SECRET')
+KAKAO_REST_API_KEY = get_secret('KAKAO_REST_API_KEY')
+KAKAO_CLIENT_SECRET = get_secret('KAKAO_CLIENT_SECRET')
 
 # OpenAI API 설정
 OPENAI_API_KEY = env('OPENAI_API_KEY')  # 환경 변수에서 가져온 OpenAI API 키 설정
 
-state = secrets.get('STATE', 'RANDOM_STRING')  # 상태 값 설정
-
-
+state = get_secret('STATE')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

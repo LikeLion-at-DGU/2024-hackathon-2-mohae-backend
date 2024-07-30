@@ -24,7 +24,9 @@ SECRET_KEY = env('SECRET_KEY', default='your-default-secret-key')
 DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = [
+    '3.35.44.88',
     'localhost',
+    'localhost5173',
     '127.0.0.1',
 ]
 

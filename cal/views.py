@@ -7,7 +7,6 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from accounts.utils import send_kakao_message
 from rest_framework.permissions import IsAuthenticated
 
 User = get_user_model()
@@ -21,9 +20,7 @@ def create_event(request):
         family = get_object_or_404(Family, pk=family_id)  # family_id가 유효한지 확인
 
         event = serializer.save(created_by=request.user, family_id=family)
-        access_token = request.user.kakao_access_token
-        if access_token:
-            send_kakao_message(access_token, f"새로운 일정이 추가되었습니다: {event.title}")
+        # Kakao message sending 부분 제거
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -1,37 +1,24 @@
 from pathlib import Path
 from dotenv import load_dotenv
-from django.core.exceptions import ImproperlyConfigured
 import os
-import json
 import environ
 from datetime import timedelta
+import uuid
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_BASE_FILE = os.path.join(BASE_DIR, 'secrets.json')
 
+# Load environment variables from .env file
 load_dotenv()
 
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# Load secrets
-with open(SECRET_BASE_FILE) as f:
-    secrets = json.load(f)
-
-def get_secret(setting, secrets=secrets):
-    """Get the secret variable or return explicit exception."""
-    try:
-        return secrets[setting]
-    except KeyError:
-        error_msg = f"Set the {setting} environment variable"
-        raise ImproperlyConfigured(error_msg)
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_secret('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY', default='your-default-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
@@ -70,8 +57,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-SITE_ID = 1
-AUTH_USER_MODEL = 'accounts.User' 
+SITE_ID = 1 
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -187,9 +173,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # OpenAI API 설정
 OPENAI_API_KEY = env('OPENAI_API_KEY')  # 환경 변수에서 가져온 OpenAI API 키 설정
 
-# STATE 설정
-STATE = get_secret('STATE')
+# STATE 설정 (UUID로 동적으로 생성)
+STATE = str(uuid.uuid4())
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-

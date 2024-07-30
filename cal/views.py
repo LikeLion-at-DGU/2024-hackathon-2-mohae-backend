@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from .models import Calendar
 from users.models import Family
 from .serializers import CalendarSerializer
-from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -20,7 +19,10 @@ def create_event(request):
         family = get_object_or_404(Family, pk=family_id)  # family_id가 유효한지 확인
 
         event = serializer.save(created_by=request.user, family_id=family)
-        # Kakao message sending 부분 제거
+        participants_ids = request.data.get('participants', [])
+        participants = User.objects.filter(id__in=participants_ids)
+        event.participants.set(participants)  # participants 설정
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -44,6 +46,10 @@ def update_event(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     serializer = CalendarSerializer(event, data=request.data, partial=True)
     if serializer.is_valid():
+        participants_ids = request.data.get('participants', [])
+        participants = User.objects.filter(id__in=participants_ids)
+        event.participants.set(participants)  # participants 설정
+
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -54,3 +60,4 @@ def delete_event(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     event.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+

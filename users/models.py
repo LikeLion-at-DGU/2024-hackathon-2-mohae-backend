@@ -14,15 +14,15 @@ class Family(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='Y')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='families')  # 일관성 있게 User 사용
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='families')  # 문자열로 직접 참조
     
     def __str__(self):
         return self.family_name
     
 class FamilyInvitation(models.Model):
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='invitations')
-    invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitations')
-    invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
+    invited_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='invitations')  # 문자열로 직접 참조
+    invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_invitations')  # 문자열로 직접 참조
     created_at = models.DateTimeField(auto_now_add=True)
     accepted = models.BooleanField(default=False)
 
@@ -30,7 +30,7 @@ class FamilyInvitation(models.Model):
         return f"{self.invited_user.email} invited to {self.family.family_name} by {self.invited_by.email}"
 
 class BucketList(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bucketlists')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bucketlists')  # 문자열로 직접 참조
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='bucketlists')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -39,3 +39,4 @@ class BucketList(models.Model):
 
     def __str__(self):
         return self.title
+

@@ -1,11 +1,10 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Album, Photo, Video, PhotoVideoLike, Comment, Favorite
-from .serializers import AlbumSerializer, PhotoSerializer, VideoSerializer, PhotoVideoLikeSerializer, CommentSerializer, FavoriteSerializer
+from .models import *
+from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from django.db import models
 from users.models import Family
 from rest_framework.exceptions import PermissionDenied
 
@@ -146,12 +145,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        photo = serializer.validated_data.get('photo', None)
-        video = serializer.validated_data.get('video', None)
-        if photo and photo.album.family != self.request.user.family:
-            return Response({'error': '댓글권한 x'}, status=status.HTTP_403_FORBIDDEN)
-        if video and video.album.family != self.request.user.family:
-            return Response({'error': '댓글 권한 x'}, status=status.HTTP_403_FORBIDDEN)
         serializer.save(user=self.request.user)
 
 class FavoriteViewSet(viewsets.ReadOnlyModelViewSet):

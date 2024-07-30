@@ -1,6 +1,8 @@
 from django.db import models
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+
+User = get_user_model()
 
 # 카테고리 모델
 class Category(models.Model):
@@ -22,7 +24,7 @@ class CulturalActivity(models.Model):
     title = models.CharField(max_length=255, null=False)  # 활동 제목
     description = models.TextField(null=True, blank=True)  # 활동 설명
     date = models.DateTimeField(null=False)  # 활동 날짜
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 생성한 사용자
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)  # 생성한 사용자
     family = models.ForeignKey('users.Family', on_delete=models.CASCADE, null=True)  # 관련된 가족
     price = models.DecimalField(max_digits=10, decimal_places=2, null=False)  # 가격
     available_slots = models.PositiveIntegerField(default=1)  # 예약 가능 슬롯 수
@@ -38,7 +40,7 @@ class CulturalActivity(models.Model):
 # 예약 모델
 class Reservation(models.Model):
     activity = models.ForeignKey(CulturalActivity, on_delete=models.CASCADE)  # 예약된 활동
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 예약한 사용자
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # 예약한 사용자
     reserved_at = models.DateTimeField(auto_now_add=True)  # 예약된 시간
     STATUS_CHOICES = [
         ('P', 'Pending'),
@@ -60,7 +62,7 @@ class ConfirmedReservation(models.Model):
 
 # 좋아요 모델
 class Like(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 좋아요를 누른 사용자
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # 좋아요를 누른 사용자
     activity = models.ForeignKey(CulturalActivity, on_delete=models.CASCADE)  # 좋아요를 받은 활동
     liked_at = models.DateTimeField(auto_now_add=True)  # 좋아요를 누른 시간
 

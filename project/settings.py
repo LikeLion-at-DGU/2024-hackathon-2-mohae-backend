@@ -114,6 +114,7 @@ ACCOUNT_USERNAME_REQUIRED = False        # username 필드 사용 x
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
 REST_USE_JWT = True
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -126,7 +127,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -191,8 +192,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 카카오 로그인 설정
-BASE_URL = 'http://127.0.0.1:8000'  # 기본 URL 설정
-KAKAO_CALLBACK_URI = BASE_URL + '/accounts/kakao/login/callback/'  # 카카오 로그인 콜백 URI 설정
+BASE_URL = 'http://localhost:8000'
+KAKAO_CALLBACK_URI = BASE_URL + '/accounts/kakao/login/callback/'
 KAKAO_REST_API_KEY = get_secret('KAKAO_REST_API_KEY')
 KAKAO_CLIENT_SECRET = get_secret('KAKAO_CLIENT_SECRET')
 

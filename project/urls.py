@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls')),  # 단일 경로로 관리
+    path('accounts/', include('accounts.urls')),
     path('cal/', include('cal.urls')),
     path('culture/', include('culture.urls')),
     path('gallery/', include('gallery.urls')),

@@ -1,38 +1,25 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import User
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
-class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError(_('The Email must be set'))
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError(_('Superuser must have is_staff=True.'))
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError(_('Superuser must have is_superuser=True.'))
-        return self.create_user(email, password, **extra_fields)
-
-class User(AbstractUser):
-    username = None
-    email = models.EmailField(unique=True, max_length=255)
-    nickname = models.CharField(unique=True, max_length=30)
-    kakao_access_token = models.CharField(max_length=255, blank=True, null=True)  # 카카오 액세스 토큰 필드 추가
-    jwt_token = models.CharField(max_length=255, blank=True, null=True)  # JWT 토큰 필드 추가
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
-
-    objects = UserManager()
+# Profile 모델 정의
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    department = models.CharField(max_length=30, null=True, blank=True)
+    hobby = models.CharField(max_length=20, null=True, blank=True)
+    followings = models.ManyToManyField("self", related_name="followers", symmetrical=False)
 
     def __str__(self):
-        return self.email
+        return self.user.username
+
+# User 모델이 생성될 때 Profile을 자동으로 생성하는 시그널
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+# User 모델이 저장될 때 Profile도 저장하는 시그널
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()

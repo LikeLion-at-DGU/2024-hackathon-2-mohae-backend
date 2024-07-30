@@ -1,11 +1,15 @@
 from django.urls import path, include
-from accounts import views
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views import RegisterView, LoginView
 
-app_name = "accounts"
+router = DefaultRouter()
+
 urlpatterns = [
-    path('', views.login, name='login'),
-    path('kakao/login/', views.kakao_login, name='kakao_login'),
-    path('kakao/login/callback/', views.kakao_callback, name='kakao_callback'),
-    path('kakao/login/finish/', views.KakaoLogin.as_view(), name='kakao_login_todjango'),
-    path('auth/', include('dj_rest_auth.urls')),  # dj_rest_auth 경로 포함
+    path('register/', RegisterView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api-auth/', include('rest_framework.urls')),  # DRF 로그인 뷰 포함
 ]
+

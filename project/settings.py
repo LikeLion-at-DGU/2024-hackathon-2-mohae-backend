@@ -1,9 +1,10 @@
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 import os
 import json
-import sys
 import environ
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,7 +37,7 @@ def get_secret(setting, secrets=secrets):
 SECRET_KEY = get_secret('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -97,13 +98,13 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ),
 }
 
@@ -113,7 +114,6 @@ ACCOUNT_USERNAME_REQUIRED = False        # username 필드 사용 x
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
 REST_USE_JWT = True
-from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -199,7 +199,8 @@ KAKAO_CLIENT_SECRET = get_secret('KAKAO_CLIENT_SECRET')
 # OpenAI API 설정
 OPENAI_API_KEY = env('OPENAI_API_KEY')  # 환경 변수에서 가져온 OpenAI API 키 설정
 
-state = get_secret('STATE')
+# STATE 설정
+STATE = get_secret('STATE')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

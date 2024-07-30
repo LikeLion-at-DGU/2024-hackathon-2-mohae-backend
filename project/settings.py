@@ -55,6 +55,10 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     # CORS
     'corsheaders',
+    # allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
 
 SITE_ID = 1 

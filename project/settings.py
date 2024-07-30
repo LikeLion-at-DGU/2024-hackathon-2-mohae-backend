@@ -15,9 +15,6 @@ load_dotenv()
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# OpenAI API 키 설정
-OPENAI_API_KEY = env('OPENAI_API_KEY')
-
 # Load secrets
 with open(SECRET_BASE_FILE) as f:
     secrets = json.load(f)
@@ -69,11 +66,6 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework.authtoken',
-    # django-allauth
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.kakao',
     # CORS
     'corsheaders',
 ]
@@ -103,6 +95,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
@@ -191,12 +184,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# 카카오 로그인 설정
-BASE_URL = 'http://localhost:8000'
-KAKAO_CALLBACK_URI = BASE_URL + '/accounts/kakao/login/callback/'
-KAKAO_REST_API_KEY = get_secret('KAKAO_REST_API_KEY')
-KAKAO_CLIENT_SECRET = get_secret('KAKAO_CLIENT_SECRET')
-
 # OpenAI API 설정
 OPENAI_API_KEY = env('OPENAI_API_KEY')  # 환경 변수에서 가져온 OpenAI API 키 설정
 
@@ -205,3 +192,4 @@ STATE = get_secret('STATE')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+

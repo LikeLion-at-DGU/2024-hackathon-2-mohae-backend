@@ -31,3 +31,4 @@ social-auth-app-django==5.4.2
 social-auth-core==4.5.4
 urllib3==2.2.2
 virtualenv==20.25.1
+django-cors-headers==3.13.0

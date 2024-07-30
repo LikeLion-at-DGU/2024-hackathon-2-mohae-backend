@@ -186,7 +186,7 @@ USE_TZ = True  # 타임존 지원 활성화로 바꿈 / 건강페이지 관련
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')  # 추가된 부분
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 

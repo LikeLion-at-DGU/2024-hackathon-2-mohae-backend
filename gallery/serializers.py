@@ -23,6 +23,8 @@ class VideoSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'album', 'video', 'description', 'created_at', 'status']
 
 class PhotoVideoLikeSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+
     class Meta:
         model = PhotoVideoLike
         fields = ['id', 'user', 'photo', 'video', 'created_at']

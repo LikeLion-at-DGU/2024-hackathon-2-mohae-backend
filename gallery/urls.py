@@ -1,4 +1,6 @@
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from .views import AlbumViewSet, PhotoViewSet, VideoViewSet, CommentViewSet, FavoriteViewSet
 
@@ -12,4 +14,4 @@ router.register('favorites', FavoriteViewSet, basename='favorites')
 
 urlpatterns = [
     path('', include(router.urls)),  # 라우터에 등록된 URL 포함
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

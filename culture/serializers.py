@@ -1,5 +1,9 @@
 from rest_framework import serializers
 from .models import CulturalActivity, Reservation, ConfirmedReservation, Like, Category, SubCategory
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 # 카테고리 직렬화기
 class CategorySerializer(serializers.ModelSerializer):
@@ -29,6 +33,8 @@ class CulturalActivitySerializer(serializers.ModelSerializer):
 
 # 예약 직렬화기
 class ReservationSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+
     class Meta:
         model = Reservation
         fields = '__all__'
@@ -41,6 +47,8 @@ class ConfirmedReservationSerializer(serializers.ModelSerializer):
 
 # 좋아요 직렬화기
 class LikeSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+
     class Meta:
         model = Like
         fields = '__all__'

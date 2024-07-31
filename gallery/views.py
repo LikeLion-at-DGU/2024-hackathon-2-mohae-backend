@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
@@ -20,7 +20,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(family=user_family, status='Y')
 
     def perform_create(self, serializer):
-         serializer.save(user=self.request.user.profile, family=self.request.user.profile.family)
+        serializer.save(user=self.request.user.profile, family=self.request.user.profile.family)
 
 class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all()
@@ -73,7 +73,7 @@ class PhotoBookViewSet(viewsets.ViewSet):
         serializer = PhotoBookSerializer(data=request.data)
         if serializer.is_valid():
             photo_ids = serializer.validated_data['photo_ids']
-            photos = Photo.objects.filter(id__in=photo_ids, user__family=request.user.profile.family)
+            photos = Photo.objects.filter(id__in=photo_ids, user__profile__family=request.user.profile.family)
 
             pdf = FPDF()
             pdf.set_auto_page_break(auto=True, margin=15)
@@ -90,5 +90,6 @@ class PhotoBookViewSet(viewsets.ViewSet):
             pdf.output(pdf_file)
 
             pdf_url = os.path.join(settings.MEDIA_URL, 'photobooks', f'photobook_{request.user.id}.pdf')
+            pdf_url = pdf_url.replace(settings.MEDIA_ROOT, settings.MEDIA_URL)  # URL 조합 방식 수정
             return Response({'pdf_url': pdf_url}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

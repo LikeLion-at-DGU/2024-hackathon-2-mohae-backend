@@ -1,68 +1,74 @@
-# tests.py
-
-from django.test import TestCase
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
-from rest_framework import status
-from users.models import Family
-from gallery.models import Album, Photo, Comment, Favorite
-from django.core.files.uploadedfile import SimpleUploadedFile
 import os
+from django.conf import settings
+from django.urls import reverse, get_resolver
+from rest_framework import status
+from rest_framework.test import APITestCase
+from django.contrib.auth import get_user_model
+from gallery.models import Album, Photo, Comment, Favorite
+from users.models import Family
+from pprint import pprint
 
 User = get_user_model()
 
-class GalleryModelTests(TestCase):
+class GalleryTests(APITestCase):
+
     def setUp(self):
-        self.user = User.objects.create_user(email='testuser@example.com', password='testpass')
+        self.user = User.objects.create_user(username='testuser', password='testpass')
         self.family = Family.objects.create(family_name='Test Family', created_by=self.user)
-        self.album = Album.objects.create(user=self.user, name='Test Album', family=self.family)
-        self.photo = Photo.objects.create(user=self.user, album=self.album, image='photos/조성현 사진.jpg')
+        self.client.login(username='testuser', password='testpass')
+        self.album = Album.objects.create(user=self.user, name='Test Album', family=self.family, status='Y')
+        self.image_path = os.path.join(settings.MEDIA_ROOT, 'photos', '조성현 사진.png')
 
-    def test_album_creation(self):
-        self.assertEqual(self.album.name, 'Test Album')
-        self.assertEqual(self.album.user, self.user)
-
-    def test_photo_creation(self):
-        self.assertEqual(self.photo.image.name, 'photos/조성현 사진.jpg')
-        self.assertEqual(self.photo.user, self.user)
-
-    def test_comment_creation(self):
-        comment = Comment.objects.create(user=self.user, photo=self.photo, text='Nice photo!')
-        self.assertEqual(comment.text, 'Nice photo!')
-        self.assertEqual(comment.user, self.user)
-
-    def test_favorite_creation(self):
-        favorite = Favorite.objects.create(user=self.user, photo=self.photo)
-        self.assertEqual(favorite.photo, self.photo)
-        self.assertEqual(favorite.user, self.user)
-
-class GalleryViewSetTests(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(email='testuser@example.com', password='testpass')
-        self.family = Family.objects.create(family_name='Test Family', created_by=self.user)
-        self.album = Album.objects.create(user=self.user, name='Test Album', family=self.family)
-        self.photo = Photo.objects.create(user=self.user, album=self.album, image='photos/조성현 사진.jpg')
-        self.client.force_authenticate(user=self.user)
+        # Ensure the test image file exists
+        assert os.path.exists(self.image_path), f'Test image file not found: {self.image_path}'
 
     def test_create_album(self):
-        data = {'name': 'New Album', 'shared': False, 'family': self.family.family_id}
-        response = self.client.post('/gallery/albums/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        url = reverse('albums-list')
+        data = {'name': 'New Album', 'family': self.family.family_id, 'status': 'Y'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Album.objects.count(), 2)
-
+    
     def test_create_photo(self):
-        # 절대 경로로 설정
-        image_path = os.path.join(os.path.dirname(__file__), '..', 'media', 'photos', '조성현 사진.jpg')
-        with open(image_path, 'rb') as image_file:
-            data = {'album': self.album.id, 'image': SimpleUploadedFile(image_file.name, image_file.read(), content_type='image/jpeg')}
-            response = self.client.post('/gallery/photos/', data, format='multipart')
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
-            self.assertEqual(Photo.objects.count(), 2)
-
-    def test_comment_photo(self):
-        data = {'photo': self.photo.id, 'text': 'Great photo!'}
-        response = self.client.post('/gallery/comments/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        url = reverse('photos-list')
+        with open(self.image_path, 'rb') as image:
+            data = {'album': self.album.id, 'image': image, 'description': 'Test Photo', 'status': 'Y'}
+            response = self.client.post(url, data, format='multipart')
+        print(response.json())  # 응답 데이터를 출력하여 디버깅
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Photo.objects.count(), 1)
+    
+    def test_create_comment(self):
+        photo = Photo.objects.create(user=self.user, album=self.album, image=self.image_path, description='Test Photo', status='Y')
+        url = reverse('comments-list')
+        data = {'photo': photo.id, 'text': 'Test Comment'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Comment.objects.count(), 1)
-        self.assertEqual(Comment.objects.get().text, 'Great photo!')
+
+    def test_add_favorite(self):
+        photo = Photo.objects.create(user=self.user, album=self.album, image=self.image_path, description='Test Photo', status='Y')
+        # URL 패턴 출력
+        print("Registered URL patterns:")
+        pprint(list(get_resolver().reverse_dict.keys()))
+
+        # 생성된 photo 객체 확인
+        print(f"Created photo: {photo.id}, {photo.user}, {photo.album}, {photo.image}, {photo.description}, {photo.status}")
+
+        url = reverse('photos-favorite', args=[photo.id])
+        print(f"Request URL: {url}")  # 요청 URL 출력
+        response = self.client.post(url)
+        if response.status_code != status.HTTP_200_OK:
+            print(f"Response status code: {response.status_code}")
+            print(f"Response data: {response.data}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Favorite.objects.count(), 1)
+    
+    def test_create_photobook(self):
+        photo = Photo.objects.create(user=self.user, album=self.album, image=self.image_path, description='Test Photo', status='Y')
+        url = reverse('photobooks-create-photobook')
+        data = {'photo_ids': [photo.id]}
+        response = self.client.post(url, data, format='json')
+        print(response.json())  # 응답 데이터를 출력하여 디버깅
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('pdf_url', response.json())

@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from .models import Album, Photo, Comment, Favorite
 from .serializers import AlbumSerializer, PhotoSerializer, CommentSerializer, FavoriteSerializer, PhotoBookSerializer
-from django.http import HttpResponse
 from fpdf import FPDF
 from django.conf import settings
 import os
@@ -90,6 +89,5 @@ class PhotoBookViewSet(viewsets.ViewSet):
             pdf.output(pdf_file)
 
             pdf_url = os.path.join(settings.MEDIA_URL, 'photobooks', f'photobook_{request.user.id}.pdf')
-            pdf_url = pdf_url.replace(settings.MEDIA_ROOT, settings.MEDIA_URL)  # URL 조합 방식 수정
             return Response({'pdf_url': pdf_url}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

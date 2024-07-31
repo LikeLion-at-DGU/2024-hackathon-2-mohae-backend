@@ -1,6 +1,5 @@
 from pathlib import Path
 from dotenv import load_dotenv
-from django.core.exceptions import ImproperlyConfigured
 import os
 import environ
 from datetime import timedelta
@@ -120,8 +119,17 @@ REST_USE_JWT = True
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': False,
+    'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_COOKIE': 'access_token',  # JWT를 저장할 쿠키의 이름
+    'AUTH_COOKIE_DOMAIN': None,
+    'AUTH_COOKIE_SECURE': False,  # 개발 환경에서는 False, 배포 시 True
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_PATH': '/',
+    'AUTH_COOKIE_SAMESITE': 'Lax',
 }
 
 ROOT_URLCONF = 'project.urls'
@@ -201,4 +209,3 @@ STATE = str(uuid.uuid4())
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-

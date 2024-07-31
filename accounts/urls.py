@@ -9,3 +9,4 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api-auth/', include('rest_framework.urls')),  # DRF 로그인 뷰 포함
 ]
+

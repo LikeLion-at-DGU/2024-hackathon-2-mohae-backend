@@ -38,6 +38,7 @@ class CulturalActivity(models.Model):
         return self.title
 
 # 예약 모델
+# 예약 모델
 class Reservation(models.Model):
     activity = models.ForeignKey(CulturalActivity, on_delete=models.CASCADE)  # 예약된 활동
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # 예약한 사용자
@@ -48,18 +49,23 @@ class Reservation(models.Model):
         ('N', 'Cancelled'),
     ]
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')  # 예약 상태
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')  # 예약 상태
 
     def __str__(self):
         return f"Reservation for {self.activity.title} by {self.user.email}"
 
 # 확정된 예약 모델
+# 확정된 예약 모델
 class ConfirmedReservation(models.Model):
+    reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE)  # 연결된 예약
+    confirmed_at = models.DateTimeField(auto_now_add=True)  # 확정된 시간
     reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE)  # 연결된 예약
     confirmed_at = models.DateTimeField(auto_now_add=True)  # 확정된 시간
 
     def __str__(self):
         return f"Confirmed reservation for {self.reservation.activity.title} by {self.reservation.user.email}"
 
+# 좋아요 모델
 # 좋아요 모델
 class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # 좋아요를 누른 사용자

@@ -20,6 +20,7 @@ class Family(models.Model):
     def __str__(self):
         return self.family_name
     
+    
 class FamilyInvitation(models.Model):
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='invitations')
     invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitations')

@@ -1,5 +1,6 @@
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 import os
 import environ
 from datetime import timedelta
@@ -200,3 +201,4 @@ STATE = str(uuid.uuid4())
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+

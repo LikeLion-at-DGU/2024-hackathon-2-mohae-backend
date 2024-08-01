@@ -13,3 +13,8 @@ class CalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calendar
         fields = ['event_id', 'title', 'start', 'end', 'participants', 'emoji', 'emoji_text', 'created_by', 'family_id', 'created_at', 'updated_at', 'status']
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']

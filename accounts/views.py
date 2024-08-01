@@ -28,4 +28,3 @@ class RegisterView(generics.CreateAPIView):
 # 커스텀 로그인 뷰
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-

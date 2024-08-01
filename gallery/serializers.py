@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Album, Photo, Comment, Favorite
+from .models import Album, Photo, Comment, Favorite, Tag
 
 class AlbumSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
@@ -8,12 +8,19 @@ class AlbumSerializer(serializers.ModelSerializer):
         model = Album
         fields = ['id', 'user', 'name', 'created_at', 'family', 'status']
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
+
 class PhotoSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    tags = TagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), write_only=True, many=True, source='tags')
 
     class Meta:
         model = Photo
-        fields = ['id', 'user', 'album', 'image', 'description', 'created_at', 'status']
+        fields = ['id', 'user', 'album', 'image', 'title', 'description', 'tags', 'tag_ids', 'created_at', 'status']
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())

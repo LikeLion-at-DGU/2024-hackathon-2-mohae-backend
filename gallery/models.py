@@ -14,16 +14,24 @@ class Album(models.Model):
     def __str__(self):
         return self.name
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class Photo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='photos')
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True, related_name='photos')
     image = models.ImageField(upload_to='photos/')
+    title = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
+    tags = models.ManyToManyField(Tag, related_name='photos', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
 
     def __str__(self):
-        return f'{self.user.username} - {self.description[:20]}'
+        return f'{self.user.username} - {self.title or self.description[:20]}'
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')

@@ -1,9 +1,8 @@
-# views.py
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Album, Photo, Comment, Favorite
-from .serializers import AlbumSerializer, PhotoSerializer, CommentSerializer, FavoriteSerializer, PhotoBookSerializer
+from .models import Album, Photo, Comment, Favorite, Tag
+from .serializers import AlbumSerializer, PhotoSerializer, CommentSerializer, FavoriteSerializer, PhotoBookSerializer, TagSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from users.models import Family
@@ -34,7 +33,6 @@ class AlbumViewSet(viewsets.ModelViewSet):
         
         serializer.save(user=self.request.user, family=family)
 
-
 class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all()
     serializer_class = PhotoSerializer
@@ -62,9 +60,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk=None):
         try:
             photo = self.get_object()
-            print(f"Photo found: {photo.id}, {photo.user}, {photo.album}, {photo.image}, {photo.description}, {photo.status}")
         except Photo.DoesNotExist:
-            print(f"Photo with id {pk} does not exist.")
             return Response({'status': 'Photo not found.'}, status=status.HTTP_404_NOT_FOUND)
         
         favorite, created = Favorite.objects.get_or_create(user=request.user, photo=photo)
@@ -137,3 +133,7 @@ class PhotoBookViewSet(viewsets.ViewSet):
             return Response({'pdf_url': pdf_url}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [IsAuthenticated]

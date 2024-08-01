@@ -46,4 +46,3 @@ class AskQuestionView(APIView):
 
         answer = response.choices[0].message['content'].strip()
         return Response({'answer': answer}, status=status.HTTP_200_OK)
-

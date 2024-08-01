@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 User = get_user_model()
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def create_event(request):
     serializer = CalendarSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
@@ -27,21 +27,21 @@ def create_event(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def list_events(request):
     events = Calendar.objects.all()
     serializer = CalendarSerializer(events, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def event_detail(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     serializer = CalendarSerializer(event)
     return Response(serializer.data)
 
 @api_view(['PATCH'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def update_event(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     serializer = CalendarSerializer(event, data=request.data, partial=True)
@@ -55,7 +55,7 @@ def update_event(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def delete_event(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     event.delete()

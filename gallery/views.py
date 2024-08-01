@@ -9,6 +9,8 @@ from rest_framework import status
 from users.models import Family
 from rest_framework.exceptions import PermissionDenied
 from fpdf import FPDF
+from accounts.models import Profile
+from rest_framework.exceptions import ValidationError
 from django.conf import settings
 import os
 
@@ -22,9 +24,15 @@ class AlbumViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(family=user_family, status='Y')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, family=self.request.user.profile.family)
-    
-
+        try:
+            user_profile = Profile.objects.get(user=self.request.user)
+            family = user_profile.family
+            if family is None:
+                raise ValidationError("Family is not set for the user's profile.")
+        except Profile.DoesNotExist:
+            raise ValidationError("Profile for the user does not exist.")
+        
+        serializer.save(user=self.request.user, family=family)
 
 
 class PhotoViewSet(viewsets.ModelViewSet):

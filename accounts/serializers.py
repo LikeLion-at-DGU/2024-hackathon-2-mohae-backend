@@ -1,5 +1,3 @@
-# serializers.py
-
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Profile
@@ -9,7 +7,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family']
-        read_only_fields = ['user']  # user 필드를 읽기 전용으로 설정
+        read_only_fields = ['user']
 
 class RegisterSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(required=True)
@@ -28,7 +26,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data.get('last_name', ''),
             email=validated_data.get('email', '')
         )
-        Profile.objects.create(user=user, **profile_data)
+        if not hasattr(user, 'profile'):
+            Profile.objects.create(user=user, **profile_data)
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

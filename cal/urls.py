@@ -7,4 +7,5 @@ urlpatterns = [
     path('events/<int:pk>/', views.event_detail, name='event_detail'),
     path('events/<int:pk>/update/', views.update_event, name='update_event'),
     path('events/<int:pk>/delete/', views.delete_event, name='delete_event'),
+    path('family/<int:family_id>/members/', views.family_members, name='family_members'),  # 가족 구성원 목록 조회 추가
 ]

@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from .models import Calendar
+from django.contrib.auth import get_user_model
 from users.models import Family
-from django.contrib.auth.models import User
+
+User = get_user_model()
 
 class CalendarSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
@@ -10,6 +12,4 @@ class CalendarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Calendar
-        fields = '__all__'
-
-
+        fields = ['event_id', 'title', 'start', 'end', 'participants', 'emoji', 'emoji_text', 'created_by', 'family_id', 'created_at', 'updated_at', 'status']

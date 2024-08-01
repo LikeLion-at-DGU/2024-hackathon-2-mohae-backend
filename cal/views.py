@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Calendar
-from users.models import Family
 from .serializers import CalendarSerializer
+from users.models import Family
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -18,9 +18,15 @@ def create_event(request):
         family_id = request.data.get('family_id')
         family = get_object_or_404(Family, pk=family_id)  # family_id가 유효한지 확인
 
+        # 현재 사용자가 가족 구성원인지 확인
+        if request.user not in family.members.all():
+            return Response({"detail": "You are not a member of this family."}, status=status.HTTP_403_FORBIDDEN)
+
         event = serializer.save(created_by=request.user, family_id=family)
+        
+        # 참가자 목록을 가족 구성원으로 제한
         participants_ids = request.data.get('participants', [])
-        participants = User.objects.filter(id__in=participants_ids)
+        participants = User.objects.filter(id__in=participants_ids, families__family_id=family_id)
         event.participants.set(participants)  # participants 설정
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -47,7 +53,7 @@ def update_event(request, pk):
     serializer = CalendarSerializer(event, data=request.data, partial=True)
     if serializer.is_valid():
         participants_ids = request.data.get('participants', [])
-        participants = User.objects.filter(id__in=participants_ids)
+        participants = User.objects.filter(id__in=participants_ids, families__family_id=event.family_id.family_id)
         event.participants.set(participants)  # participants 설정
 
         serializer.save()
@@ -60,4 +66,3 @@ def delete_event(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     event.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
-

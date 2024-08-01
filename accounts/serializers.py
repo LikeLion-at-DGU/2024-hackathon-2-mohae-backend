@@ -3,10 +3,17 @@ from django.contrib.auth.models import User
 from .models import Profile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']  # 필요에 따라 다른 필드 추가 가능
+
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Profile
-        fields = ['phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family']
+        fields = ['user', 'phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family']
         read_only_fields = ['user']
 
 class RegisterSerializer(serializers.ModelSerializer):

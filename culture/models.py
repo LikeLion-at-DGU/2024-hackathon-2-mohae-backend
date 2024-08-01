@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -23,21 +24,25 @@ class SubCategory(models.Model):
 class CulturalActivity(models.Model):
     title = models.CharField(max_length=255, null=False)  # 활동 제목
     description = models.TextField(null=True, blank=True)  # 활동 설명
-    date = models.DateTimeField(null=False)  # 활동 날짜
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)  # 생성한 사용자
+    date = models.DateTimeField(null=True)  # 활동 날짜
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)  # 생성한 사용자
     family = models.ForeignKey('users.Family', on_delete=models.CASCADE, null=True)  # 관련된 가족
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=False)  # 가격
-    available_slots = models.PositiveIntegerField(default=1)  # 예약 가능 슬롯 수
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True)  # 가격
+    available_slots = models.PositiveIntegerField(default=1, null=True)  # 예약 가능 슬롯 수
     created_at = models.DateTimeField(auto_now_add=True)  # 생성된 시간
     updated_at = models.DateTimeField(auto_now=True)  # 마지막 업데이트 시간
-    status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')  # 활동 상태
-    category = models.ForeignKey(Category, related_name='activities', on_delete=models.CASCADE)  # 연결된 카테고리
-    subcategory = models.ForeignKey(SubCategory, related_name='activities', on_delete=models.CASCADE)  # 연결된 하위 카테고리
+    status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y', null=True)  # 활동 상태
+    category = models.ForeignKey(Category, related_name='activities', on_delete=models.CASCADE, null=True)  # 연결된 카테고리
+    subcategory = models.ForeignKey(SubCategory, related_name='activities', on_delete=models.CASCADE, null=True)  # 연결된 하위 카테고리
+    thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)  # 썸네일 이미지 추가
 
     def __str__(self):
         return self.title
 
-# 예약 모델
+    def clean(self):
+        if self.date and self.date < timezone.now():
+            raise ValidationError('Date cannot be in the past.')
+
 # 예약 모델
 class Reservation(models.Model):
     activity = models.ForeignKey(CulturalActivity, on_delete=models.CASCADE)  # 예약된 활동
@@ -54,7 +59,6 @@ class Reservation(models.Model):
     def __str__(self):
         return f"Reservation for {self.activity.title} by {self.user.email}"
 
-# 확정된 예약 모델
 # 확정된 예약 모델
 class ConfirmedReservation(models.Model):
     reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE)  # 연결된 예약

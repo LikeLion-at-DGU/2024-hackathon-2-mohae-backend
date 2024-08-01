@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from .models import *
 from .serializers import *
 
-# 문화 활동 뷰셋
 class CulturalActivityViewSet(viewsets.ModelViewSet):
     queryset = CulturalActivity.objects.filter(status='Y')
     serializer_class = CulturalActivitySerializer
@@ -16,18 +15,15 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         activity = self.get_object()
         user = request.user
 
-        # 예약 가능한 자원의 수 확인
         confirmed_reservations_count = Reservation.objects.filter(activity=activity, status='C').count()
         if confirmed_reservations_count >= activity.available_slots:
             return Response({'message': '예약 가능한 자원이 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 예약 중복 체크
         reservation, created = Reservation.objects.get_or_create(activity=activity, user=user)
         if not created:
             if reservation.status == 'C':
                 return Response({'message': '이미 예약된 활동입니다.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                # 예약이 존재하지만 확정되지 않은 경우 상태를 확인하고 처리
                 try:
                     reservation.status = 'C'
                     reservation.save()
@@ -47,29 +43,17 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def like(self, request, pk=None):
+    def toggle_like(self, request, pk=None):
         activity = self.get_object()
         user = request.user
 
         like, created = Like.objects.get_or_create(activity=activity, user=user)
         if not created:
-            return Response({'message': '이미 좋아요를 눌렀습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({'message': '좋아요가 추가되었습니다.'}, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def unlike(self, request, pk=None):
-        activity = self.get_object()
-        user = request.user
-
-        like = Like.objects.filter(activity=activity, user=user).first()
-        if like:
             like.delete()
-            return Response({'message': '좋아요가 취소되었습니다.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Like removed.'}, status=status.HTTP_200_OK)
         
-        return Response({'message': '좋아요를 누르지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Liked.'}, status=status.HTTP_201_CREATED)
 
-# 사용자 예약 조회 뷰셋
 class MyReservationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ConfirmedReservationSerializer
     permission_classes = [IsAuthenticated]
@@ -77,7 +61,6 @@ class MyReservationsViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return ConfirmedReservation.objects.filter(reservation__user=self.request.user)
 
-# 사용자 좋아요 조회 뷰셋
 class MyLikesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CulturalActivitySerializer
     permission_classes = [IsAuthenticated]
@@ -87,12 +70,10 @@ class MyLikesViewSet(viewsets.ReadOnlyModelViewSet):
         liked_activities = Like.objects.filter(user=user).values_list('activity', flat=True)
         return CulturalActivity.objects.filter(id__in=liked_activities)
 
-# 카테고리 뷰셋
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-# 하위 카테고리 뷰셋
 class SubCategoryViewSet(viewsets.ModelViewSet):
     queryset = SubCategory.objects.all()
     serializer_class = SubCategorySerializer

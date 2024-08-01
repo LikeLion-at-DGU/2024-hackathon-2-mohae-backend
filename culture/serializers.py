@@ -22,8 +22,6 @@ class CulturalActivitySerializer(serializers.ModelSerializer):
     reservation_status = serializers.SerializerMethodField()
     category = CategorySerializer(read_only=True)
     subcategory = SubCategorySerializer(read_only=True)
-    category = CategorySerializer(read_only=True)
-    subcategory = SubCategorySerializer(read_only=True)
 
     class Meta:
         model = CulturalActivity
@@ -34,7 +32,6 @@ class CulturalActivitySerializer(serializers.ModelSerializer):
         return 'Full' if confirmed_reservations_count >= obj.available_slots else 'Available'
 
 # 예약 직렬화기
-# 예약 직렬화기
 class ReservationSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
 
@@ -43,13 +40,11 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 # 확정된 예약 직렬화기
-# 확정된 예약 직렬화기
 class ConfirmedReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConfirmedReservation
         fields = '__all__'
 
-# 좋아요 직렬화기
 # 좋아요 직렬화기
 class LikeSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())

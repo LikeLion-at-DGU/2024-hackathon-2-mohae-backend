@@ -27,10 +27,5 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
     
-<<<<<<< HEAD
 def __str__(self):
     return self.user.username
-=======
-    def __str__(self):   
-        return self.user.username
->>>>>>> c51744f739075ed53034c1a1e3d7de68748fd276

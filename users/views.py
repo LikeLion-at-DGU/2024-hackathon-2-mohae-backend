@@ -76,7 +76,9 @@ class FamilyViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)  # 가족 생성 시, 생성자 정보 저장
+        family = serializer.save(created_by=self.request.user)
+        self.request.user.family = family
+        self.request.user.save()
 
     def perform_update(self, serializer):
         family = self.get_object()  # 현재 객체를 가져옴

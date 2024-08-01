@@ -22,6 +22,19 @@ class PhotoSerializer(serializers.ModelSerializer):
         model = Photo
         fields = ['id', 'user', 'album', 'image', 'title', 'description', 'tags', 'tag_ids', 'created_at', 'status']
 
+    def create(self, validated_data):
+        tags_data = validated_data.pop('tags', [])
+        photo = Photo.objects.create(**validated_data)
+        photo.tags.set(tags_data)
+        return photo
+
+    def update(self, instance, validated_data):
+        tags_data = validated_data.pop('tags', [])
+        instance = super().update(instance, validated_data)
+        if tags_data:
+            instance.tags.set(tags_data)
+        return instance
+
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
 

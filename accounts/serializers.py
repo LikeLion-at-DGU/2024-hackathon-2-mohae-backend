@@ -26,8 +26,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data.get('last_name', ''),
             email=validated_data.get('email', '')
         )
-        if not hasattr(user, 'profile'):
-            Profile.objects.create(user=user, **profile_data)
+        Profile.objects.create(user=user, **profile_data)
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

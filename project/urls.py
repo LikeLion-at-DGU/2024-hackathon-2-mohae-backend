@@ -12,4 +12,5 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('users/', include('users.urls')),
     path('health/', include('health.urls')),
+    path('sms/', include('sms.urls')),  # SMS 관련 URL 포함
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

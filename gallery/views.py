@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Album, Photo, Comment, Favorite, Tag
-from .serializers import AlbumSerializer, PhotoSerializer, CommentSerializer, FavoriteSerializer, PhotoBookSerializer, TagSerializer
+from .models import Album, Photo, Comment, Favorite
+from .serializers import AlbumSerializer, PhotoSerializer, CommentSerializer, FavoriteSerializer, PhotoBookSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from users.models import Family
@@ -43,21 +43,13 @@ class PhotoViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(album__family=user_family, status='Y').order_by('-created_at')
 
     def perform_create(self, serializer):
-        tags = self.request.data.get('tag_ids', [])
-        photo = serializer.save(user=self.request.user)
-        if tags:
-            photo.tags.set(tags)
-        photo.save()
+        serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
         photo = self.get_object()
         if photo.user != self.request.user:
             raise PermissionDenied('편집권한이 없습니다.')
-        tags = self.request.data.get('tag_ids', [])
-        updated_photo = serializer.save()
-        if tags:
-            updated_photo.tags.set(tags)
-        updated_photo.save()
+        serializer.save()
 
     def perform_destroy(self, instance):
         if instance.user != self.request.user:
@@ -140,8 +132,3 @@ class PhotoBookViewSet(viewsets.ViewSet):
             pdf_url = f'{settings.MEDIA_URL}photobooks/photobook_{request.user.id}.pdf'
             return Response({'pdf_url': pdf_url}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class TagViewSet(viewsets.ModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-    permission_classes = [IsAuthenticated]

@@ -7,7 +7,7 @@ from .models import BucketList, Family, FamilyInvitation
 from .serializers import BucketListSerializer, FamilySerializer, FamilyInvitationSerializer, LikeSerializer, CulturalActivitySerializer, ConfirmedReservationSerializer
 from culture.models import Like, ConfirmedReservation, CulturalActivity
 from django.db.models import Q
-from accounts.models import User
+from accounts.models import User, Profile
 
 # BucketList 모델에 대한 CRUD 작업을 처리하는 ViewSet
 class BucketListViewSet(viewsets.ModelViewSet):
@@ -71,46 +71,48 @@ class MyPageViewSet(viewsets.ViewSet):
 
 # Family 모델에 대한 CRUD 작업 및 가족 초대와 수락 기능을 제공하는 ViewSet
 class FamilyViewSet(viewsets.ModelViewSet):
-    queryset = Family.objects.all()  # 모든 Family 객체를 쿼리셋으로 정의
-    serializer_class = FamilySerializer  # 이 뷰셋에서 사용할 시리얼라이저 클래스 지정
-    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
+    queryset = Family.objects.all()
+    serializer_class = FamilySerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         family = serializer.save(created_by=self.request.user)
-        self.request.user.family = family
-        self.request.user.save()
+        profile = Profile.objects.get(user=self.request.user)
+        profile.family = family
+        profile.save()
 
     def perform_update(self, serializer):
-        family = self.get_object()  # 현재 객체를 가져옴
+        family = self.get_object()
         if family.created_by != self.request.user:
-            raise PermissionDenied('편집 권한이 없습니다.')  # 현재 사용자가 객체의 생성자가 아닌 경우, 권한 없음 예외 발생
-        serializer.save()  # 권한이 있는 경우, 업데이트 수행
+            raise PermissionDenied('편집 권한이 없습니다.')
+        serializer.save()
 
     def perform_destroy(self, instance):
-        family = self.get_object()  # 현재 객체를 가져옴
+        family = self.get_object()
         if family.created_by != self.request.user:
-            raise PermissionDenied('삭제 권한이 없습니다.')  # 현재 사용자가 객체의 생성자가 아닌 경우, 권한 없음 예외 발생
-        instance.delete()  # 권한이 있는 경우, 삭제 수행
+            raise PermissionDenied('삭제 권한이 없습니다.')
+        instance.delete()
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def invite(self, request, pk=None):
-        family = self.get_object()  # 현재 가족 객체를 가져옴
+        family = self.get_object()
         try:
-            invited_user = User.objects.get(pk=request.data.get('user_id'))  # 초대할 사용자를 가져옴
-            FamilyInvitation.objects.create(family=family, invited_user=invited_user, invited_by=request.user)  # 초대 객체 생성
-            return Response({'status': '초대가 발송되었습니다.'})  # 성공 메시지 반환
+            invited_user = User.objects.get(pk=request.data.get('user_id'))
+            FamilyInvitation.objects.create(family=family, invited_user=invited_user, invited_by=request.user)
+            return Response({'status': '초대가 발송되었습니다.'})
         except User.DoesNotExist:
-            return Response({'error': '사용자를 찾을 수 없습니다.'}, status=404)  # 사용자를 찾을 수 없는 경우 오류 메시지 반환
+            return Response({'error': '사용자를 찾을 수 없습니다.'}, status=404)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def accept_invitation(self, request, pk=None):
         try:
-            invitation = FamilyInvitation.objects.get(pk=pk, invited_user=request.user)  # 초대 객체를 가져옴
+            invitation = FamilyInvitation.objects.get(pk=pk, invited_user=request.user)
             invitation.accepted = True
-            invitation.save()  # 초대 수락 상태로 업데이트
-            request.user.family = invitation.family  # 사용자의 가족 정보 업데이트
-            request.user.save()  # 사용자 정보 저장
-            return Response({'status': '초대가 수락되었습니다.'})  # 성공 메시지 반환
+            invitation.save()
+            profile = Profile.objects.get(user=request.user)
+            profile.family = invitation.family
+            profile.save()
+            return Response({'status': '초대가 수락되었습니다.'})
         except FamilyInvitation.DoesNotExist:
             return Response({'error': '초대를 찾을 수 없습니다.'}, status=404)  # 초대 객체를 찾을 수 없는 경우 오류 메시지 반환
 

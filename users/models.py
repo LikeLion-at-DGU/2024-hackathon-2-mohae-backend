@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.conf import settings
 
 User = get_user_model()
 
@@ -19,14 +18,14 @@ class Family(models.Model):
 
     def save(self, *args, **kwargs):
         super(Family, self).save(*args, **kwargs)
-        if not self.created_by.family:
-            self.created_by.family = self
-            self.created_by.save()
+        if not self.created_by.profile.family:
+            self.created_by.profile.family = self
+            self.created_by.profile.save()
 
     def __str__(self):
         return self.family_name
-    
-    
+
+
 class FamilyInvitation(models.Model):
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='invitations')
     invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitations')
@@ -37,11 +36,11 @@ class FamilyInvitation(models.Model):
     def save(self, *args, **kwargs):
         super(FamilyInvitation, self).save(*args, **kwargs)
         if self.accepted:
-            self.invited_user.family = self.family
-            self.invited_user.save()
+            self.invited_user.profile.family = self.family
+            self.invited_user.profile.save()
 
     def __str__(self):
-        return f"{self.invited_user.email} invited to {self.family.family_name} by {self.invited_by.email}"        
+        return f"{self.invited_user.email} invited to {self.family.family_name} by {self.invited_by.email}"
 
 
 class BucketList(models.Model):
@@ -54,4 +53,3 @@ class BucketList(models.Model):
 
     def __str__(self):
         return self.title
-

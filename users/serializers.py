@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import BucketList, Family, FamilyInvitation
 from culture.models import Like, CulturalActivity, ConfirmedReservation
 from django.contrib.auth import get_user_model
-
+from accounts.models import Profile
 
 User = get_user_model()
 class BucketListSerializer(serializers.ModelSerializer):
@@ -12,7 +12,14 @@ class BucketListSerializer(serializers.ModelSerializer):
         model = BucketList
         fields = ['id', 'user', 'family', 'title', 'description', 'created_at', 'status']
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['id','phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family', 'user']
+
 class FamilySerializer(serializers.ModelSerializer):
+    profiles = ProfileSerializer(many=True, read_only=True)
+
     class Meta:
         model = Family
         fields = '__all__'

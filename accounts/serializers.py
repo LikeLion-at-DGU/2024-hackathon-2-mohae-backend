@@ -1,3 +1,5 @@
+# serializers.py
+
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Profile
@@ -6,7 +8,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ['phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family']
+        read_only_fields = ['user']  # user 필드를 읽기 전용으로 설정
 
 class RegisterSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(required=True)

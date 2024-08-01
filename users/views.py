@@ -120,3 +120,6 @@ class FamilyInvitationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.queryset.filter(invited_user=self.request.user)  # 현재 요청한 사용자가 초대된 가족 초대 목록 필터링
+
+    def perform_create(self, serializer):
+        serializer.save(invited_by=self.request.user)

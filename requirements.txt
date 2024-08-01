@@ -34,7 +34,6 @@ requests-oauthlib==2.0.0
 setuptools==69.2.0
 social-auth-app-django==5.4.2
 social-auth-core==4.5.4
-SpeechRecognition==3.10.4
 sqlparse==0.5.1
 typing_extensions==4.12.2
 tzdata==2024.1
@@ -44,3 +43,4 @@ python-dotenv==1.0.1
 openai==0.28.0
 SpeechRecognition==3.10.4
 pyttsx3==2.90
+fpdf==

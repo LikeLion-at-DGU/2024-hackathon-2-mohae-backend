@@ -2,29 +2,47 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from .serializers import QuestionSerializer
 import openai
+import speech_recognition as sr
+import os
 from django.conf import settings
+from django.core.files.storage import default_storage
 
 # OpenAI API 키 설정
 openai.api_key = settings.OPENAI_API_KEY
 
 class AskQuestionView(APIView):
-    permission_classes = [AllowAny]  # 모든 사용자에게 허용
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        serializer = QuestionSerializer(data=request.data)
-        if serializer.is_valid():
-            question = serializer.validated_data['question']
+        # 음성 파일 처리
+        if 'audio' in request.FILES:
+            audio_file = request.FILES['audio']
+            path = default_storage.save('temp.wav', audio_file)
+            full_path = os.path.join(settings.MEDIA_ROOT, path)
+
+            recognizer = sr.Recognizer()
+            with sr.AudioFile(full_path) as source:
+                audio = recognizer.record(source)
+                try:
+                    question = recognizer.recognize_google(audio, language="ko-KR")
+                except sr.UnknownValueError:
+                    return Response({'error': "Could not understand audio"}, status=status.HTTP_400_BAD_REQUEST)
+                except sr.RequestError as e:
+                    return Response({'error': f"Could not request results from Google Speech Recognition service; {e}"}, status=status.HTTP_400_BAD_REQUEST)
             
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": question}
-                ]
-            )
-            
-            answer = response.choices[0].message['content'].strip()
-            return Response({'answer': answer}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            os.remove(full_path)  # Temp 파일 삭제
+        else:
+            return Response({'error': "No audio file provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # ChatGPT API 호출
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": question}
+            ]
+        )
+
+        answer = response.choices[0].message['content'].strip()
+        return Response({'answer': answer}, status=status.HTTP_200_OK)

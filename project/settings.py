@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'api',
     'gallery',
     'health',
+    'sms',
     # django-rest-framework
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',

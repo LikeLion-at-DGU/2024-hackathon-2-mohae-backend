@@ -33,8 +33,4 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         token['username'] = user.username
-<<<<<<< HEAD
         return token
-=======
-        return token
->>>>>>> c51744f739075ed53034c1a1e3d7de68748fd276

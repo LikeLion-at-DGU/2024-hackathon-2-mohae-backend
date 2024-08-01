@@ -130,12 +130,8 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
-<<<<<<< HEAD
-    'SIGNING_KEY': SECRET_KEY,
-=======
     #'SIGNING_KEY': SECRET_KEY,
     #'VERIFYING_KEY': None,
->>>>>>> c51744f739075ed53034c1a1e3d7de68748fd276
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_COOKIE': 'access_token',  # JWT를 저장할 쿠키의 이름
     'AUTH_COOKIE_DOMAIN': None,
@@ -143,12 +139,9 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_HTTP_ONLY': True,
     'AUTH_COOKIE_PATH': '/',
     'AUTH_COOKIE_SAMESITE': 'Lax',
-<<<<<<< HEAD
-=======
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
->>>>>>> c51744f739075ed53034c1a1e3d7de68748fd276
 }
 
 ROOT_URLCONF = 'project.urls'

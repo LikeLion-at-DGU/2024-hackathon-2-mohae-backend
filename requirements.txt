@@ -26,7 +26,6 @@ PyAudio==0.2.14
 PyJWT==2.8.0
 python-dotenv==1.0.1
 python3-openid==3.2.0
-pypiwin32==223
 pyttsx3==2.90
 requests==2.32.3
 requests-oauthlib==2.0.0

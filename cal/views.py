@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Calendar
-from .serializers import CalendarSerializer
+from .serializers import CalendarSerializer, UserSerializer
 from users.models import Family
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -19,7 +19,7 @@ def create_event(request):
         family = get_object_or_404(Family, pk=family_id)  # family_id가 유효한지 확인
 
         # 현재 사용자가 가족 구성원인지 확인
-        if request.user not in family.members.all():
+        if request.user not in family.created_by.families.all():
             return Response({"detail": "You are not a member of this family."}, status=status.HTTP_403_FORBIDDEN)
 
         event = serializer.save(created_by=request.user, family_id=family)
@@ -66,3 +66,16 @@ def delete_event(request, pk):
     event = get_object_or_404(Calendar, pk=pk)
     event.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET'])
+#@permission_classes([IsAuthenticated])
+def family_members(request, family_id):
+    family = get_object_or_404(Family, pk=family_id)
+    
+    # 현재 사용자가 가족 구성원인지 확인
+    if request.user not in family.created_by.families.all():
+        return Response({"detail": "You are not a member of this family."}, status=status.HTTP_403_FORBIDDEN)
+    
+    members = family.created_by.families.all()
+    serializer = UserSerializer(members, many=True)
+    return Response(serializer.data)

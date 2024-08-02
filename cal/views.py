@@ -84,7 +84,6 @@ def family_members(request, family_id):
     
     # 현재 사용자가 가족 구성원인지 확인
     if not is_user_family_member(request.user, family_id):
-    if not is_user_family_member(request.user, family_id):
         return Response({"detail": "You are not a member of this family."}, status=status.HTTP_403_FORBIDDEN)
     
     members = family.profile_set.all()

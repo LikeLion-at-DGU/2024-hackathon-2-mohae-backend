@@ -6,12 +6,6 @@ class MedicationSerializer(serializers.ModelSerializer):
         model = Medication
         fields = '__all__'
 
-class SupplementSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Supplement
-        fields = '__all__'
-        # health/serializers.py
-
 class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment

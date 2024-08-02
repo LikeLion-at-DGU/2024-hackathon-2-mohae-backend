@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import Medication, Appointment, Challenge
-from .serializers import MedicationSerializer, AppointmentSerializer, ChallengeSerializer
+from .serializers import MedicationSerializer, AppointmentSerializer, ChallengeSerializer, ProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response

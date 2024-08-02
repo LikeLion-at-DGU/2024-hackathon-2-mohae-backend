@@ -1,7 +1,6 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
-from users.models import Family
 from django.contrib.auth.models import User
 
 class Medication(models.Model):
@@ -22,20 +21,19 @@ class Medication(models.Model):
 
 
 class Appointment(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='appointments')
-    patient = models.ManyToManyField(User, related_name='patient_appointments', blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointments')
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_appointments',  null=True, blank=True)
     location = models.CharField(max_length=255)
     appointment_datetime = models.DateTimeField()
-    family_id = models.ForeignKey(Family, on_delete=models.CASCADE, null=True)
 
     def send_notification(self):
         from jmunja import smssend
         uid = "vini0420"
         upw = "097affdae04ad0a9357177454f4d8a"
         subject = "병원 예약 알림"
-        content = f"Reminder: Appointment for {self.patient.all()[0].username} at {self.location} on {self.appointment_datetime.strftime('%Y-%m-%d %H:%M:%S')}"
-        hpno = self.user.phone_number  # 사용자 전화번호 필요
-        callback = self.user.phone_number
+        content = f"Reminder: Appointment for {self.patient.username} at {self.location} on {self.appointment_datetime.strftime('%Y-%m-%d %H:%M:%S')}"
+        hpno = self.patient.profile.phone_number  # 진료자 전화번호 필요
+        callback = self.user.profile.phone_number
 
         jphone = smssend.JmunjaPhone(uid, upw)
         presult = jphone.send(subject, content, hpno)

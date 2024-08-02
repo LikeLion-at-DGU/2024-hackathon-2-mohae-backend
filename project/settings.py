@@ -62,6 +62,13 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+
+    'django_cron',
+]
+
+# CRON_CLASSES 설정
+CRON_CLASSES = [
+    'health.cron.SendAppointmentReminderCronJob',
 ]
 
 SITE_ID = 1 
@@ -222,3 +229,4 @@ STATE = str(uuid.uuid4())
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+

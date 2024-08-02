@@ -14,12 +14,15 @@ class MedicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # 로그인한 사용자와 관련된 데이터만 반환
         return self.queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        # 생성 시 로그인한 사용자를 자동으로 설정
         serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
+        # 업데이트 시 로그인한 사용자를 자동으로 설정
         serializer.save(user=self.request.user)
 
 

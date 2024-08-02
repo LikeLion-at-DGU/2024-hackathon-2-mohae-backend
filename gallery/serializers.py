@@ -13,7 +13,7 @@ class PhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Photo
-        fields = ['id', 'user', 'album', 'image', 'title', 'description', 'created_at', 'status']
+        fields = ['id', 'user', 'album', 'image', 'title', 'description', 'created_at', 'status', 'family']
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())

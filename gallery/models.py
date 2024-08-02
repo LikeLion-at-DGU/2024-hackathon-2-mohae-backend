@@ -8,7 +8,7 @@ class Album(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='albums')
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-    family = models.ForeignKey('users.Family', on_delete=models.CASCADE, related_name='albums', null=True, blank=True)
+    family = models.ForeignKey('users.Family', on_delete=models.CASCADE, related_name='albums', null=True,blank=True)
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
 
     def __str__(self):
@@ -22,6 +22,7 @@ class Photo(models.Model):
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y')
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='photos', null=True,blank=True)
 
     def __str__(self):
         return f'{self.user.username} - {self.title or self.description[:20]}'

@@ -23,13 +23,10 @@ class AlbumViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(family=user_family, status='Y')
 
     def perform_create(self, serializer):
-        try:
-            user_profile = Profile.objects.get(user=self.request.user)
-            family = user_profile.family
-            if family is None:
-                raise ValidationError("Family is not set for the user's profile.")
-        except Profile.DoesNotExist:
-            raise ValidationError("Profile for the user does not exist.")
+        user_profile = Profile.objects.get(user=self.request.user)
+        family = user_profile.family
+        if family is None:
+            raise ValidationError("Family is not set for the user's profile.")
         
         serializer.save(user=self.request.user, family=family)
 
@@ -40,10 +37,18 @@ class PhotoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_family = self.request.user.profile.family
-        return self.queryset.filter(album__family=user_family, status='Y').order_by('-created_at')
+        return self.queryset.filter(family=user_family, status='Y').order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        try:
+            user_profile = Profile.objects.get(user=self.request.user)
+            family = user_profile.family
+            if family is None:
+                raise ValidationError("Family is not set for the user's profile.")
+        except Profile.DoesNotExist:
+            raise ValidationError("Profile for the user does not exist.")
+        
+        serializer.save(user=self.request.user, family=family)
 
     def perform_update(self, serializer):
         photo = self.get_object()
@@ -81,7 +86,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_family = self.request.user.profile.family
-        return self.queryset.filter(photo__album__family=user_family, photo__status='Y')
+        return self.queryset.filter(photo__family=user_family, photo__status='Y')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

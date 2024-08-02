@@ -24,9 +24,9 @@ class SubCategory(models.Model):
 class CulturalActivity(models.Model):
     title = models.CharField(max_length=255, null=False)  # 활동 제목
     description = models.TextField(null=True, blank=True)  # 활동 설명
-    date = models.DateTimeField(null=True)  # 활동 날짜
+    start_date = models.DateTimeField(null=True)  # 시작 일자
+    end_date = models.DateTimeField(null=True)  # 종료 일자
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)  # 생성한 사용자
-    family = models.ForeignKey('users.Family', on_delete=models.CASCADE, null=True)  # 관련된 가족
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True)  # 가격
     available_slots = models.PositiveIntegerField(default=1, null=True)  # 예약 가능 슬롯 수
     created_at = models.DateTimeField(auto_now_add=True)  # 생성된 시간
@@ -35,13 +35,18 @@ class CulturalActivity(models.Model):
     category = models.ForeignKey(Category, related_name='activities', on_delete=models.CASCADE, null=True)  # 연결된 카테고리
     subcategory = models.ForeignKey(SubCategory, related_name='activities', on_delete=models.CASCADE, null=True)  # 연결된 하위 카테고리
     thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)  # 썸네일 이미지 추가
+    hyperlink = models.URLField(max_length=200, null=True, blank=True)  # 하이퍼링크 추가
+    location = models.CharField(max_length=255, null=True, blank=True)  # 위치 추가
+    distance = models.TextField(null=True, blank=True)  # 잡다한 정보 필드 추가
 
     def __str__(self):
         return self.title
 
     def clean(self):
-        if self.date and self.date < timezone.now():
-            raise ValidationError('Date cannot be in the past.')
+        if self.start_date and self.start_date < timezone.now():
+            raise ValidationError('Start date cannot be in the past.')
+        if self.end_date and self.start_date and self.end_date <= self.start_date:
+            raise ValidationError('End date must be after start date.')
 
 # 예약 모델
 class Reservation(models.Model):
@@ -69,7 +74,6 @@ class ConfirmedReservation(models.Model):
     def __str__(self):
         return f"Confirmed reservation for {self.reservation.activity.title} by {self.reservation.user.email}"
 
-# 좋아요 모델
 # 좋아요 모델
 class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # 좋아요를 누른 사용자

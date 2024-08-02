@@ -7,7 +7,7 @@ User = get_user_model()
 
 class CalendarSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-    family_id = serializers.PrimaryKeyRelatedField(queryset=Family.objects.all())
+    family_id = serializers.PrimaryKeyRelatedField(read_only=True)  # 읽기 전용으로 설정
     participants = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
 
     class Meta:

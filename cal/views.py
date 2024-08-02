@@ -34,6 +34,7 @@ def create_event(request):
         
         # 참가자 목록을 가족 구성원으로 제한
         participants_ids = request.data.get('participants', [])
+        participants = User.objects.filter(id__in=participants_ids, profile__family=family)
         participants = User.objects.filter(id__in=participants_ids, profile__family=family_id)
         event.participants.set(participants)  # participants 설정
 
@@ -62,6 +63,7 @@ def update_event(request, pk):
     if serializer.is_valid():
         participants_ids = request.data.get('participants', [])
         participants = User.objects.filter(id__in=participants_ids, profile__family=event.family_id)
+        participants = User.objects.filter(id__in=participants_ids, profile__family=event.family_id)
         event.participants.set(participants)  # participants 설정
 
         serializer.save()
@@ -82,8 +84,10 @@ def family_members(request, family_id):
     
     # 현재 사용자가 가족 구성원인지 확인
     if not is_user_family_member(request.user, family_id):
+    if not is_user_family_member(request.user, family_id):
         return Response({"detail": "You are not a member of this family."}, status=status.HTTP_403_FORBIDDEN)
     
+    members = family.profile_set.all()
     members = User.objects.filter(profile__family=family)
     serializer = UserSerializer(members, many=True)
     return Response(serializer.data)

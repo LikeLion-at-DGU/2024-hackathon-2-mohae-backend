@@ -4,9 +4,8 @@ from .serializers import MedicationSerializer, AppointmentSerializer, ChallengeS
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone  # 추가
-from datetime import timedelta  # 추가
+from users.models import Family
+from django.contrib.auth.models import User
 
 class MedicationViewSet(viewsets.ModelViewSet):
     queryset = Medication.objects.all()
@@ -32,9 +31,19 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        start_date = timezone.now()
-        end_date = start_date + timedelta(days=7)
-        return self.queryset.filter(user=self.request.user, appointment_datetime__range=(start_date, end_date))
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def family_members(self, request):
+        family = request.user.profile.family
+        if family:
+            members = User.objects.filter(profile__family=family).exclude(id=request.user.id)
+            serializer = ProfileSerializer(members, many=True)
+            return Response(serializer.data)
+        return Response([])
 
 class ChallengeViewSet(viewsets.ModelViewSet):
     queryset = Challenge.objects.all()

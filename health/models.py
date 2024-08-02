@@ -22,7 +22,8 @@ class Medication(models.Model):
 
 class Appointment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointments')
-    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_appointments',  null=True, blank=True)
+    name = models.CharField(max_length=255, default='')  # 기본 값을 빈 문자열로 설정
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_appointments', null=True, blank=True)
     location = models.CharField(max_length=255)
     appointment_datetime = models.DateTimeField()
 

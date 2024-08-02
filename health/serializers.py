@@ -14,6 +14,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = '__all__'
+        read_only_fields = ('user',)  # user 필드를 읽기 전용으로 설정
 
 class ChallengeSerializer(serializers.ModelSerializer):
     participants = serializers.StringRelatedField(many=True)

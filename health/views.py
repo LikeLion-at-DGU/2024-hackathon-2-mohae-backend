@@ -4,6 +4,7 @@ from .serializers import MedicationSerializer, AppointmentSerializer, ChallengeS
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone  # 추가
 from datetime import timedelta  # 추가
 
@@ -14,6 +15,12 @@ class MedicationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):

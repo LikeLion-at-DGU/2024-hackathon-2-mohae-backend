@@ -4,26 +4,21 @@ from django.utils import timezone
 from users.models import Family
 from django.contrib.auth.models import User
 
-BOOL_CHOICES = [
-    ('Y', 'Yes'),
-    ('N', 'No'),
-]
-
 class Medication(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    morning = models.CharField(max_length=1, choices=BOOL_CHOICES, default='N')
-    lunch = models.CharField(max_length=1, choices=BOOL_CHOICES, default='N')
-    dinner = models.CharField(max_length=1, choices=BOOL_CHOICES, default='N')
+    morning = models.CharField(max_length=255, blank=True, default='')
+    lunch = models.CharField(max_length=255, blank=True, default='')
+    dinner = models.CharField(max_length=255, blank=True, default='')
 
     def has_taken_morning_med(self):
-        return self.morning == 'Y'
+        return self.morning.lower() == 'y'
     
     def has_taken_lunch_med(self):
-        return self.lunch == 'Y'
+        return self.lunch.lower() == 'y'
 
     def has_taken_dinner_med(self):
-        return self.dinner == 'Y'
+        return self.dinner.lower() == 'y'
 
 
 class Appointment(models.Model):

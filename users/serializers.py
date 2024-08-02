@@ -8,6 +8,7 @@ User = get_user_model()
 
 class BucketListSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    family = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = BucketList

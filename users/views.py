@@ -16,11 +16,11 @@ class BucketListViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
 
     def get_queryset(self):
-        user_family = self.request.user.family  # 현재 요청한 사용자의 가족을 가져옴
+        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
         return self.queryset.filter(family=user_family, status='Y')  # 해당 가족의 활성화된 버킷리스트 필터링
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, family=self.request.user.family)  # 버킷리스트 생성 시, 사용자와 가족 정보 저장
+        serializer.save(user=self.request.user, family=self.request.user.profile.family)  # 버킷리스트 생성 시, 사용자와 가족 정보 저장
 
     def perform_update(self, serializer):
         bucketlist = self.get_object()  # 현재 객체를 가져옴
@@ -40,14 +40,14 @@ class MyPageViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def bucketlists(self, request):
-        user_family = request.user.family  # 현재 요청한 사용자의 가족을 가져옴
+        user_family = request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
         bucketlists = BucketList.objects.filter(family=user_family, status='Y')  # 해당 가족의 활성화된 버킷리스트 필터링
         serializer = BucketListSerializer(bucketlists, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
         return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
 
     @action(detail=False, methods=['get'])
     def likes(self, request):
-        user_family = request.user.family  # 현재 요청한 사용자의 가족을 가져옴
+        user_family = request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
         likes = Like.objects.filter(Q(user__family=user_family)).select_related('activity')  # 해당 가족의 좋아요 항목 필터링
         activities = CulturalActivity.objects.filter(id__in=likes.values('activity'))  # 좋아요가 눌린 활동들 필터링
         serializer = CulturalActivitySerializer(activities, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
@@ -55,7 +55,7 @@ class MyPageViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def confirmed_reservations(self, request):
-        user = request.user  # 현재 요청한 사용자를 가져옴
+        user = request.user.profile  # 현재 요청한 사용자를 가져옴
         confirmed_reservations = ConfirmedReservation.objects.filter(reservation__user=user)  # 사용자의 확정된 예약 필터링
         serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
         return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환

@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import CulturalActivityViewSet, MyReservationsViewSet, MyLikesViewSet, CategoryViewSet, SubCategoryViewSet
 
-router = DefaultRouter()
+router = DefaultRouter(trailing_slash=False)
 router.register('activities', CulturalActivityViewSet, basename='activities')
 router.register('my_reservations', MyReservationsViewSet, basename='my_reservations')
 router.register('my_likes', MyLikesViewSet, basename='my_likes')

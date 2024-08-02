@@ -15,7 +15,6 @@ class Family(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='Y')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='families')
-    members = models.ManyToManyField(User, related_name='families_members')
 
     def save(self, *args, **kwargs):
         super(Family, self).save(*args, **kwargs)

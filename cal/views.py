@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
-from .utils import is_user_family_member
+
 
 User = get_user_model()
 
@@ -20,7 +20,7 @@ def create_event(request):
         family = get_object_or_404(Family, pk=family_id)  # family_id가 유효한지 확인
 
         # 현재 사용자가 가족 구성원인지 확인
-        if not is_user_family_member(request.user, family_id):
+        if not family.members.filter(pk=request.user.pk).exists():
             return Response({"detail": "You are not a member of this family."}, status=status.HTTP_403_FORBIDDEN)
 
         event = serializer.save(created_by=request.user, family_id=family)

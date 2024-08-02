@@ -11,16 +11,16 @@ from accounts.models import User, Profile
 
 # BucketList 모델에 대한 CRUD 작업을 처리하는 ViewSet
 class BucketListViewSet(viewsets.ModelViewSet):
-    queryset = BucketList.objects.all()  # 모든 BucketList 객체를 쿼리셋으로 정의
-    serializer_class = BucketListSerializer  # 이 뷰셋에서 사용할 시리얼라이저 클래스 지정
-    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
+    queryset = BucketList.objects.all()
+    serializer_class = BucketListSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user_family = self.request.user.family  # 현재 요청한 사용자의 가족을 가져옴
+        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
         return self.queryset.filter(family=user_family, status='Y')  # 해당 가족의 활성화된 버킷리스트 필터링
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, family=self.request.user.family)  # 버킷리스트 생성 시, 사용자와 가족 정보 저장
+        serializer.save(user=self.request.user, family=self.request.user.profile.family)
 
     def perform_update(self, serializer):
         bucketlist = self.get_object()  # 현재 객체를 가져옴
@@ -40,18 +40,18 @@ class MyPageViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def bucketlists(self, request):
-        user_family = request.user.family  # 현재 요청한 사용자의 가족을 가져옴
-        bucketlists = BucketList.objects.filter(family=user_family, status='Y')  # 해당 가족의 활성화된 버킷리스트 필터링
-        serializer = BucketListSerializer(bucketlists, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
-        return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
+        user_family = request.user.profile.family
+        bucketlists = BucketList.objects.filter(family=user_family, status='Y')
+        serializer = BucketListSerializer(bucketlists, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def likes(self, request):
-        user_family = request.user.family  # 현재 요청한 사용자의 가족을 가져옴
-        likes = Like.objects.filter(Q(user__family=user_family)).select_related('activity')  # 해당 가족의 좋아요 항목 필터링
-        activities = CulturalActivity.objects.filter(id__in=likes.values('activity'))  # 좋아요가 눌린 활동들 필터링
-        serializer = CulturalActivitySerializer(activities, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
-        return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
+        user_family = request.user.profile.family
+        likes = Like.objects.filter(Q(user__profile__family=user_family)).select_related('activity')
+        activities = CulturalActivity.objects.filter(id__in=likes.values('activity'))
+        serializer = CulturalActivitySerializer(activities, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def confirmed_reservations(self, request):
@@ -80,6 +80,7 @@ class FamilyViewSet(viewsets.ModelViewSet):
         profile = Profile.objects.get(user=self.request.user)
         profile.family = family
         profile.save()
+        family.members.add(self.request.user)
 
     def perform_update(self, serializer):
         family = self.get_object()
@@ -112,6 +113,7 @@ class FamilyViewSet(viewsets.ModelViewSet):
             profile = Profile.objects.get(user=request.user)
             profile.family = invitation.family
             profile.save()
+            invitation.family.members.add(request.user)
             return Response({'status': '초대가 수락되었습니다.'})
         except FamilyInvitation.DoesNotExist:
             return Response({'error': '초대를 찾을 수 없습니다.'}, status=404)  # 초대 객체를 찾을 수 없는 경우 오류 메시지 반환

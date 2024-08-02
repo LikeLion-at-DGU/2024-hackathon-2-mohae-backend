@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from accounts.models import Profile
 
 User = get_user_model()
+
 class BucketListSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
 
@@ -15,7 +16,7 @@ class BucketListSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['id','phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family', 'user']
+        fields = [ 'phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family', 'user']
 
 class FamilySerializer(serializers.ModelSerializer):
     profiles = ProfileSerializer(many=True, read_only=True)
@@ -23,7 +24,6 @@ class FamilySerializer(serializers.ModelSerializer):
     class Meta:
         model = Family
         fields = '__all__'
-
 
 class FamilyInvitationSerializer(serializers.ModelSerializer):
     invited_user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())

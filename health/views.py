@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Medication, Supplement, Appointment, Challenge
-from .serializers import MedicationSerializer, SupplementSerializer, AppointmentSerializer, ChallengeSerializer
+from .models import Medication, Appointment, Challenge
+from .serializers import MedicationSerializer, AppointmentSerializer, ChallengeSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,13 +15,6 @@ class MedicationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
 
-class SupplementViewSet(viewsets.ModelViewSet):
-    queryset = Supplement.objects.all()
-    serializer_class = SupplementSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()

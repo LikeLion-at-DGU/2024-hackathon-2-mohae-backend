@@ -17,7 +17,7 @@ class BucketListSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = [ 'phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family', 'user']
+        fields = [ 'phone_number', 'nickname', 'birth_date', 'address', 'profile_picture']
 
 class FamilySerializer(serializers.ModelSerializer):
     profiles = ProfileSerializer(many=True, read_only=True)

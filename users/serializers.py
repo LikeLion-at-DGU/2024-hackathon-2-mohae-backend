@@ -19,7 +19,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family_code']
+        fields = ['id','phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family_code']
 
     def update(self, instance, validated_data):
         family_code = validated_data.pop('family_code', None)

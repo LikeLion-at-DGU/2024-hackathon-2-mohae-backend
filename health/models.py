@@ -31,9 +31,12 @@ class Appointment(models.Model):
         uid = "vini0420"
         upw = "097affdae04ad0a9357177454f4d8a"
         subject = "병원 예약 알림"
-        content = f"Reminder: Appointment for {self.patient.username} at {self.location} on {self.appointment_datetime.strftime('%Y-%m-%d %H:%M:%S')}"
+        content = (
+            f"{self.patient.username}님, {self.location}에서 "
+            f"{self.appointment_datetime.strftime('%Y-%m-%d %H:%M:%S')}에 예약되어 있습니다."
+        )
         hpno = self.patient.profile.phone_number  # 진료자 전화번호 필요
-        callback = self.user.profile.phone_number
+        callback = "01083562203"  # self.user.profile.phone_number
 
         jphone = smssend.JmunjaPhone(uid, upw)
         presult = jphone.send(subject, content, hpno)

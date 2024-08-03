@@ -16,7 +16,6 @@ djangorestframework-simplejwt==5.3.1
 filelock==3.13.3
 idna==3.7
 jmunja==0.0.4
-mysqlclient==2.2.4
 oauthlib==3.2.2
 pillow==10.3.0
 pipenv==2023.12.1

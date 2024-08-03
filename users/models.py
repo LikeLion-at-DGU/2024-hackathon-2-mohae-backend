@@ -16,14 +16,14 @@ class Family(models.Model):
 
     family_id = models.AutoField(primary_key=True)
     family_name = models.CharField(max_length=255, null=False)
-    family_code = models.CharField(max_length=6, unique=True)
+    family_code = models.CharField(max_length=6, unique=True, blank=True)  # 기본값 설정 없음, blank=True로 수정
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='Y')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='families')
 
     def save(self, *args, **kwargs):
-        if not self.family_code or self.family_code == 'TEMP':
+        if not self.family_code:
             self.family_code = self._generate_unique_family_code()
         super(Family, self).save(*args, **kwargs)
         if not self.created_by.profile.family:

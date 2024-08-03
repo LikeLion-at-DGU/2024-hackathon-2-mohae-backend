@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from users.models import Family
 
 class Medication(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -9,6 +10,7 @@ class Medication(models.Model):
     morning = models.CharField(max_length=255, blank=True, default='')
     lunch = models.CharField(max_length=255, blank=True, default='')
     dinner = models.CharField(max_length=255, blank=True, default='')
+    family = models.ForeignKey(Family, on_delete=models.CASCADE)  # 가족 필드 추가
 
     def has_taken_morning_med(self):
         return self.morning.lower() == 'y'
@@ -21,10 +23,11 @@ class Medication(models.Model):
 
 class Appointment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointments')
-    name = models.CharField(max_length=255)  # 예약 내용 필드 추가
+    name = models.CharField(max_length=255)
     patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_appointments', null=True, blank=True)
     location = models.CharField(max_length=255)
     appointment_datetime = models.DateTimeField()
+    family = models.ForeignKey(Family, on_delete=models.CASCADE)  # 가족 필드 추가
 
     def send_notification(self):
         from jmunja import smssend
@@ -46,13 +49,12 @@ class Appointment(models.Model):
 
         return presult or wresult
 
-
-
 class Challenge(models.Model):
     title = models.CharField(max_length=255)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='challenges')
+    family = models.ForeignKey(Family, on_delete=models.CASCADE)  # 가족 필드 추가
 
     def __str__(self):
         return self.title

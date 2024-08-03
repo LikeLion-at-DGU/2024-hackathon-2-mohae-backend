@@ -10,7 +10,7 @@ class Medication(models.Model):
     morning = models.CharField(max_length=255, blank=True, default='')
     lunch = models.CharField(max_length=255, blank=True, default='')
     dinner = models.CharField(max_length=255, blank=True, default='')
-    family = models.ForeignKey(Family, on_delete=models.CASCADE)  # 가족 필드 추가
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True, blank=True)  # 가족 필드 추가
 
     def has_taken_morning_med(self):
         return self.morning.lower() == 'y'
@@ -27,7 +27,7 @@ class Appointment(models.Model):
     patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_appointments', null=True, blank=True)
     location = models.CharField(max_length=255)
     appointment_datetime = models.DateTimeField()
-    family = models.ForeignKey(Family, on_delete=models.CASCADE)  # 가족 필드 추가
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True, blank=True)  # 가족 필드 추가
 
     def send_notification(self):
         from jmunja import smssend
@@ -53,8 +53,8 @@ class Challenge(models.Model):
     title = models.CharField(max_length=255)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
-    participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='challenges')
-    family = models.ForeignKey(Family, on_delete=models.CASCADE)  # 가족 필드 추가
+    participants = models.ManyToManyField(User, related_name='challenges')
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True, blank=True)  # 가족 필드 추가
 
     def __str__(self):
         return self.title

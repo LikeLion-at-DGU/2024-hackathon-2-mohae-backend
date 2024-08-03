@@ -64,3 +64,8 @@ class ConfirmedReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConfirmedReservation
         fields = ['reservation', 'confirmed_at']
+
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = ['id', 'user', 'activity', 'created_at']

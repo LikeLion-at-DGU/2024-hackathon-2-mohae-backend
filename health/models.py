@@ -19,10 +19,9 @@ class Medication(models.Model):
     def has_taken_dinner_med(self):
         return self.dinner.lower() == 'y'
 
-
 class Appointment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointments')
-    name = models.CharField(max_length=255, default='')  # 기본 값을 빈 문자열로 설정
+    name = models.CharField(max_length=255)  # 예약 내용 필드 추가
     patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_appointments', null=True, blank=True)
     location = models.CharField(max_length=255)
     appointment_datetime = models.DateTimeField()
@@ -43,6 +42,7 @@ class Appointment(models.Model):
         wresult = jweb.send(subject, content, hpno, callback)
 
         return presult or wresult
+
 
 
 class Challenge(models.Model):

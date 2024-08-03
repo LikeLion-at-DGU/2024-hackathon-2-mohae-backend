@@ -1,11 +1,11 @@
 from rest_framework import viewsets
 from .models import Medication, Appointment, Challenge
-from .serializers import MedicationSerializer, AppointmentSerializer, ChallengeSerializer, ProfileSerializer
+from .serializers import MedicationSerializer, AppointmentSerializer, ChallengeSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from users.models import Family
 from django.contrib.auth.models import User
+from users.serializers import ProfileSerializer  # ProfileSerializer import 추가
 
 class MedicationViewSet(viewsets.ModelViewSet):
     queryset = Medication.objects.all()
@@ -13,17 +13,10 @@ class MedicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # 로그인한 사용자와 관련된 데이터만 반환
         return self.queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        # 생성 시 로그인한 사용자를 자동으로 설정
         serializer.save(user=self.request.user)
-
-    def perform_update(self, serializer):
-        # 업데이트 시 로그인한 사용자를 자동으로 설정
-        serializer.save(user=self.request.user)
-
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()

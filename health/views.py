@@ -19,6 +19,18 @@ class MedicationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, family=self.request.user.profile.family)
 
+    def perform_update(self, serializer):
+        serializer.save(family=self.request.user.profile.family)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def family_members(self, request):
+        family = request.user.profile.family
+        if family:
+            members = User.objects.filter(profile__family=family).exclude(id=request.user.id)
+            serializer = ProfileSerializer(members, many=True)
+            return Response(serializer.data)
+        return Response([])
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -34,6 +46,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, family=self.request.user.profile.family)
+
+    def perform_update(self, serializer):
+        serializer.save(family=self.request.user.profile.family)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def family_members(self, request):

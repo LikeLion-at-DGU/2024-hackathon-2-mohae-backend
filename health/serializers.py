@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 class AppointmentSerializer(serializers.ModelSerializer):
     patient = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    family = serializers.PrimaryKeyRelatedField(read_only=True)  # 읽기 전용으로 설정
 
     class Meta:
         model = Appointment
@@ -11,6 +12,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'family')  # user, family 필드를 읽기 전용으로 설정
 
 class MedicationSerializer(serializers.ModelSerializer):
+    family = serializers.PrimaryKeyRelatedField(read_only=True)  # 읽기 전용으로 설정
+
     class Meta:
         model = Medication
         fields = '__all__'
@@ -18,6 +21,7 @@ class MedicationSerializer(serializers.ModelSerializer):
 
 class ChallengeSerializer(serializers.ModelSerializer):
     participants = serializers.StringRelatedField(many=True)
+    family = serializers.PrimaryKeyRelatedField(read_only=True)  # 읽기 전용으로 설정
 
     class Meta:
         model = Challenge

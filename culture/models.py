@@ -7,15 +7,35 @@ User = get_user_model()
 
 # 카테고리 모델
 class Category(models.Model):
-    name = models.CharField(max_length=255, unique=True)  # 카테고리 이름
+    CATEGORY_CHOICES = [
+        ('볼거리', '볼거리'),
+        ('놀거리', '놀거리'),
+        ('배울거리', '배울거리'),
+        ('추억거리', '추억거리'),
+    ]
+    name = models.CharField(max_length=255, unique=True, choices=CATEGORY_CHOICES)  # 카테고리 이름
 
     def __str__(self):
         return self.name
 
 # 하위 카테고리 모델
 class SubCategory(models.Model):
+    SUBCATEGORY_CHOICES = [
+        ('Life', 'Life'),
+        ('Hobby', 'Hobby'),
+        ('Cook', 'Cook'),
+        ('Activity', 'Activity'),
+        ('Play', 'Play'),
+        ('Temapark', 'Temapark'),
+        ('Movie', 'Movie'),
+        ('Show', 'Show'),
+        ('Art', 'Art'),
+        ('Local', 'Local'),
+        ('Abroad', 'Abroad'),
+        ('Hotel', 'Hotel'),
+    ]
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)  # 연결된 카테고리
-    name = models.CharField(max_length=255)  # 하위 카테고리 이름
+    name = models.CharField(max_length=255, choices=SUBCATEGORY_CHOICES)  # 하위 카테고리 이름
 
     def __str__(self):
         return self.name
@@ -59,8 +79,6 @@ class Reservation(models.Model):
         ('N', 'Cancelled'),
     ]
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')  # 예약 상태
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')  # 예약 상태
-
     def __str__(self):
         return f"Reservation for {self.activity.title} by {self.user.email}"
 

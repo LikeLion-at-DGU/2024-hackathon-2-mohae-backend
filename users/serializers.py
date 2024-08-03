@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import BucketList, Family
-from culture.models import Like, CulturalActivity, ConfirmedReservation
+from culture.models import Like, CulturalActivity, ConfirmedReservation, Reservation
 from django.contrib.auth import get_user_model
 from accounts.models import Profile
 
@@ -19,7 +19,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['user','phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family_code']
+        fields = ['user', 'phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family_code']
 
     def update(self, instance, validated_data):
         family_code = validated_data.pop('family_code', None)
@@ -43,14 +43,24 @@ class FamilySerializer(serializers.ModelSerializer):
 class CulturalActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = CulturalActivity
-        fields = '__all__'
+        fields = ['title', 'start_date', 'end_date', 'available_slots', 'price']
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username']
+
+class ReservationSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    activity = CulturalActivitySerializer()
+
+    class Meta:
+        model = Reservation
+        fields = ['activity', 'user', 'reserved_at']
 
 class ConfirmedReservationSerializer(serializers.ModelSerializer):
+    reservation = ReservationSerializer()
+
     class Meta:
         model = ConfirmedReservation
-        fields = '__all__'
-
-class LikeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Like
-        fields = ['id', 'user', 'activity', 'created_at']
+        fields = ['reservation', 'confirmed_at']

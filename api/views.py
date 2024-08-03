@@ -1,16 +1,30 @@
+# views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
+from accounts.models import Profile
+from .serializers import UserProfileSerializer
 import openai
 import speech_recognition as sr
 from django.conf import settings
 
-# OpenAI API 키 설정
 openai.api_key = settings.OPENAI_API_KEY
 
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        profile = Profile.objects.get(user=request.user)
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
+
 class AskQuestionView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.previous_questions = {}
 
     def post(self, request, *args, **kwargs):
         recognizer = sr.Recognizer()
@@ -29,6 +43,10 @@ class AskQuestionView(APIView):
         elif not question:
             return Response({'error': "No question or audio provided"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # 중복 질문 확인
+        if question in self.previous_questions:
+            return Response({'answer': self.previous_questions[question]}, status=status.HTTP_200_OK)
+
         # ChatGPT API 호출
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -39,4 +57,5 @@ class AskQuestionView(APIView):
         )
 
         answer = response.choices[0].message['content'].strip()
+        self.previous_questions[question] = answer
         return Response({'answer': answer}, status=status.HTTP_200_OK)

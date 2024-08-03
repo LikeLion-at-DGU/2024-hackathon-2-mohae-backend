@@ -14,10 +14,10 @@ class MedicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        return self.queryset.filter(family=self.request.user.profile.family)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(user=self.request.user, family=self.request.user.profile.family)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -30,10 +30,10 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        return self.queryset.filter(family=self.request.user.profile.family)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(user=self.request.user, family=self.request.user.profile.family)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def family_members(self, request):
@@ -54,9 +54,17 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     serializer_class = ChallengeSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return self.queryset.filter(family=self.request.user.profile.family)
+
+    def perform_create(self, serializer):
+        serializer.save(family=self.request.user.profile.family)
+
     @action(detail=True, methods=['post'])
     def join(self, request, pk=None):
         challenge = self.get_object()
+        if challenge.family != request.user.profile.family:
+            return Response({'status': 'Cannot join challenges outside your family'}, status=status.HTTP_400_BAD_REQUEST)
         challenge.participants.add(request.user)
         challenge.save()
         return Response({'status': 'joined'})
@@ -67,9 +75,6 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         challenge.participants.remove(request.user)
         challenge.save()
         return Response({'status': 'left'})
-
-    def get_queryset(self):
-        return self.queryset.filter(participants=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

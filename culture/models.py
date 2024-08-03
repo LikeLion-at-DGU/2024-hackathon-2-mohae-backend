@@ -1,4 +1,4 @@
-from datetime import timezone
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -24,16 +24,16 @@ class SubCategory(models.Model):
 class CulturalActivity(models.Model):
     title = models.CharField(max_length=255, null=False)  # 활동 제목
     description = models.TextField(null=True, blank=True)  # 활동 설명
-    start_date = models.DateTimeField(null=True)  # 시작 일자
-    end_date = models.DateTimeField(null=True)  # 종료 일자
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)  # 생성한 사용자
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True)  # 가격
-    available_slots = models.PositiveIntegerField(default=1, null=True)  # 예약 가능 슬롯 수
-    created_at = models.DateTimeField(auto_now_add=True)  # 생성된 시간
-    updated_at = models.DateTimeField(auto_now=True)  # 마지막 업데이트 시간
-    status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y', null=True)  # 활동 상태
-    category = models.ForeignKey(Category, related_name='activities', on_delete=models.CASCADE, null=True)  # 연결된 카테고리
-    subcategory = models.ForeignKey(SubCategory, related_name='activities', on_delete=models.CASCADE, null=True)  # 연결된 하위 카테고리
+    start_date = models.DateTimeField(null=True,blank=True)  # 시작 일자
+    end_date = models.DateTimeField(null=True,blank=True)  # 종료 일자
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)  # 생성한 사용자
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True,blank=True)  # 가격
+    available_slots = models.PositiveIntegerField(default=1, null=True,blank=True)  # 예약 가능 슬롯 수
+    created_at = models.DateTimeField(auto_now_add=True,blank=True)  # 생성된 시간
+    updated_at = models.DateTimeField(auto_now=True,blank=True)  # 마지막 업데이트 시간
+    status = models.CharField(max_length=1, choices=[('Y', 'Active'), ('N', 'Inactive')], default='Y', null=True,blank=True)  # 활동 상태
+    category = models.ForeignKey(Category, related_name='activities', on_delete=models.CASCADE, null=True,blank=True)  # 연결된 카테고리
+    subcategory = models.ForeignKey(SubCategory, related_name='activities', on_delete=models.CASCADE, null=True,blank=True)  # 연결된 하위 카테고리
     thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)  # 썸네일 이미지 추가
     hyperlink = models.URLField(max_length=200, null=True, blank=True)  # 하이퍼링크 추가
     location = models.CharField(max_length=255, null=True, blank=True)  # 위치 추가
@@ -66,8 +66,6 @@ class Reservation(models.Model):
 
 # 확정된 예약 모델
 class ConfirmedReservation(models.Model):
-    reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE)  # 연결된 예약
-    confirmed_at = models.DateTimeField(auto_now_add=True)  # 확정된 시간
     reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE)  # 연결된 예약
     confirmed_at = models.DateTimeField(auto_now_add=True)  # 확정된 시간
 

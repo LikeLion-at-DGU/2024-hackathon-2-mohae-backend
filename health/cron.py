@@ -4,7 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 class SendAppointmentReminderCronJob(CronJobBase):
-    RUN_AT_TIMES = ['02:30']  # 매일 오전 9시에 실행말고 다른걸로 테스트
+    RUN_AT_TIMES = ['02:50']  # 매일 오전 9시에 실행말고 다른걸로 테스트
 
     schedule = Schedule(run_at_times=RUN_AT_TIMES)
     code = 'health.send_appointment_reminder_cron_job'  # 고유 코드

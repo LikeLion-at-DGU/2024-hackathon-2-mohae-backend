@@ -34,6 +34,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 class FamilySerializer(serializers.ModelSerializer):
     profiles = ProfileSerializer(many=True, read_only=True)
     family_code = serializers.CharField(read_only=True)  # 읽기 전용으로 설정
+    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Family
         fields = '__all__'

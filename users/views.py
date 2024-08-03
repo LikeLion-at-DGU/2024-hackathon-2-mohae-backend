@@ -121,3 +121,4 @@ class FamilyViewSet(viewsets.ModelViewSet):
             return Response({'status': 'Family joined successfully.'})
         except Family.DoesNotExist:
             return Response({'error': 'Invalid family code.'}, status=400)
+

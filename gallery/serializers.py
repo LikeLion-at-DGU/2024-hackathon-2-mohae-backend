@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Album, Photo, Comment, Favorite
+from accounts.models import Profile
 
 class AlbumSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
@@ -8,12 +9,19 @@ class AlbumSerializer(serializers.ModelSerializer):
         model = Album
         fields = ['id', 'user', 'name', 'created_at', 'family', 'status']
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['nickname', 'profile_picture']
+
+
 class PhotoSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    profile = UserProfileSerializer(source='user.profile', read_only=True)  # 프로필 정보 추가
 
     class Meta:
         model = Photo
-        fields = ['id', 'user', 'album', 'image', 'title', 'description', 'created_at', 'status', 'family']
+        fields = ['id', 'user', 'profile', 'album', 'image', 'title', 'description', 'created_at', 'status', 'family']
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())

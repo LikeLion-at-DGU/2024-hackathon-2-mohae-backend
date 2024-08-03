@@ -32,7 +32,6 @@ platformdirs==4.2.0
 PyAudio==0.2.14
 pycparser==2.22
 PyJWT==2.8.0
-pypiwin32==223
 python-dotenv==1.0.1
 python3-openid==3.2.0
 pyttsx3==2.90

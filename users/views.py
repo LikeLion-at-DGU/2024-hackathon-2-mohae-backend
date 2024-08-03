@@ -3,11 +3,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import BucketList, Family, FamilyInvitation
-from .serializers import BucketListSerializer, FamilySerializer, FamilyInvitationSerializer, LikeSerializer, CulturalActivitySerializer, ConfirmedReservationSerializer, ProfileSerializer
+from .models import BucketList, Family
+from .serializers import BucketListSerializer, FamilySerializer, LikeSerializer, CulturalActivitySerializer, ConfirmedReservationSerializer, ProfileSerializer
 from culture.models import Like, ConfirmedReservation, CulturalActivity
 from django.db.models import Q
-from accounts.models import User, Profile
+from accounts.models import Profile
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
@@ -29,7 +29,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save()
 
-# BucketList 모델에 대한 CRUD 작업을 처리하는 ViewSet
 class BucketListViewSet(viewsets.ModelViewSet):
     queryset = BucketList.objects.all()  # 모든 BucketList 객체를 쿼리셋으로 정의
     serializer_class = BucketListSerializer  # 이 뷰셋에서 사용할 시리얼라이저 클래스 지정
@@ -54,7 +53,6 @@ class BucketListViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('삭제 권한이 없습니다.')  # 현재 사용자가 객체의 소유자가 아닌 경우, 권한 없음 예외 발생
         instance.delete()  # 권한이 있는 경우, 삭제 수행
 
-# 사용자 개인 페이지에서 다양한 정보를 제공하는 ViewSet
 class MyPageViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
 
@@ -89,7 +87,6 @@ class MyPageViewSet(viewsets.ViewSet):
         except Like.DoesNotExist:
             return Response({'error': 'Like not found'}, status=404)  # 좋아요 객체가 없는 경우 오류 메시지 반환
 
-# Family 모델에 대한 CRUD 작업 및 가족 초대와 수락 기능을 제공하는 ViewSet
 class FamilyViewSet(viewsets.ModelViewSet):
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
@@ -113,37 +110,14 @@ class FamilyViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('삭제 권한이 없습니다.')
         instance.delete()
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def invite(self, request, pk=None):
-        family = self.get_object()
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def join_by_code(self, request):
+        family_code = request.data.get('family_code')
         try:
-            invited_user = User.objects.get(pk=request.data.get('user_id'))
-            FamilyInvitation.objects.create(family=family, invited_user=invited_user, invited_by=request.user)
-            return Response({'status': '초대가 발송되었습니다.'})
-        except User.DoesNotExist:
-            return Response({'error': '사용자를 찾을 수 없습니다.'}, status=404)
-
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def accept_invitation(self, request, pk=None):
-        try:
-            invitation = FamilyInvitation.objects.get(pk=pk, invited_user=request.user)
-            invitation.accepted = True
-            invitation.save()
+            family = Family.objects.get(family_code=family_code)
             profile = Profile.objects.get(user=request.user)
-            profile.family = invitation.family
+            profile.family = family
             profile.save()
-            return Response({'status': '초대가 수락되었습니다.'})
-        except FamilyInvitation.DoesNotExist:
-            return Response({'error': '초대를 찾을 수 없습니다.'}, status=404)  # 초대 객체를 찾을 수 없는 경우 오류 메시지 반환
-
-# FamilyInvitation 모델에 대한 CRUD 작업을 처리하는 ViewSet
-class FamilyInvitationViewSet(viewsets.ModelViewSet):
-    queryset = FamilyInvitation.objects.all()  # 모든 FamilyInvitation 객체를 쿼리셋으로 정의
-    serializer_class = FamilyInvitationSerializer  # 이 뷰셋에서 사용할 시리얼라이저 클래스 지정
-    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
-
-    def get_queryset(self):
-        return self.queryset.filter(invited_user=self.request.user)  # 현재 요청한 사용자가 초대된 가족 초대 목록 필터링
-
-    def perform_create(self, serializer):
-        serializer.save(invited_by=self.request.user)
+            return Response({'status': 'Family joined successfully.'})
+        except Family.DoesNotExist:
+            return Response({'error': 'Invalid family code.'}, status=400)

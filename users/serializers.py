@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import BucketList, Family, FamilyInvitation
+from .models import BucketList, Family
 from culture.models import Like, CulturalActivity, ConfirmedReservation
 from django.contrib.auth import get_user_model
 from accounts.models import Profile
@@ -15,23 +15,27 @@ class BucketListSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'family', 'title', 'description', 'created_at', 'status']
 
 class ProfileSerializer(serializers.ModelSerializer):
+    family_code = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = Profile
-        fields = [ 'phone_number', 'nickname', 'birth_date', 'address', 'profile_picture']
+        fields = ['phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family_code']
+
+    def update(self, instance, validated_data):
+        family_code = validated_data.pop('family_code', None)
+        if family_code:
+            try:
+                family = Family.objects.get(family_code=family_code)
+                instance.family = family
+            except Family.DoesNotExist:
+                raise serializers.ValidationError("Invalid family code.")
+        return super().update(instance, validated_data)
 
 class FamilySerializer(serializers.ModelSerializer):
     profiles = ProfileSerializer(many=True, read_only=True)
 
     class Meta:
         model = Family
-        fields = '__all__'
-
-class FamilyInvitationSerializer(serializers.ModelSerializer):
-    invited_user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    invited_by = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = FamilyInvitation
         fields = '__all__'
 
 class CulturalActivitySerializer(serializers.ModelSerializer):

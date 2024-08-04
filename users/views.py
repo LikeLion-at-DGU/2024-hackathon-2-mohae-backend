@@ -58,22 +58,22 @@ class MyPageViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def bucketlists(self, request):
-        user_family = request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
+        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
         bucketlists = BucketList.objects.filter(family=user_family, status='Y')  # 해당 가족의 활성화된 버킷리스트 필터링
         serializer = BucketListSerializer(bucketlists, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
         return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
 
     @action(detail=False, methods=['get'])
     def likes(self, request):
-        user_family = request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
-        likes = Like.objects.filter(Q(user__family=user_family)).select_related('activity')  # 해당 가족의 좋아요 항목 필터링
+        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
+        likes = Like.objects.filter(user__profile__family=user_family).select_related('activity')  # 해당 가족의 좋아요 항목 필터링
         activities = CulturalActivity.objects.filter(id__in=likes.values('activity'))  # 좋아요가 눌린 활동들 필터링
         serializer = CulturalActivitySerializer(activities, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
         return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
 
     @action(detail=False, methods=['get'])
     def confirmed_reservations(self, request):
-        user_family = request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
+        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
         confirmed_reservations = ConfirmedReservation.objects.filter(reservation__user__profile__family=user_family)  # 가족의 확정된 예약 필터링
         serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
         return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
@@ -121,4 +121,3 @@ class FamilyViewSet(viewsets.ModelViewSet):
             return Response({'status': 'Family joined successfully.'})
         except Family.DoesNotExist:
             return Response({'error': 'Invalid family code.'}, status=400)
-

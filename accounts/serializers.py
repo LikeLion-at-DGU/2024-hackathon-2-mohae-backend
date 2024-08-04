@@ -42,3 +42,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['username'] = user.username
         return token
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['phone_number', 'nickname', 'birth_date', 'address', 'profile_picture', 'family']

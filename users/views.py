@@ -2,12 +2,18 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from .models import BucketList, Family
 from .serializers import BucketListSerializer, FamilySerializer, LikeSerializer, CulturalActivitySerializer, ConfirmedReservationSerializer, ProfileSerializer
 from culture.models import Like, ConfirmedReservation, CulturalActivity
 from django.db.models import Q
 from accounts.models import Profile
+from sms.sms_service import send_sms  # 추가
+from django.http import JsonResponse # 추강
+import logging
+import random
+
+logger = logging.getLogger(__name__)
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
@@ -81,11 +87,41 @@ class MyPageViewSet(viewsets.ViewSet):
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
         try:
-            like = Like.objects.get(user=request.user, activity_id=pk)  # 특정 활동에 대한 사용자의 좋아요 객체 가져옴
-            like.delete()  # 좋아요 객체 삭제
-            return Response({'status': 'Like removed'})  # 성공 메시지 반환
+            like = Like.objects.get(user=request.user, activity_id=pk)
+            like.delete()
+            return Response({'status': 'Like removed'})
         except Like.DoesNotExist:
-            return Response({'error': 'Like not found'}, status=404)  # 좋아요 객체가 없는 경우 오류 메시지 반환
+            return Response({'error': 'Like not found'}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def invite_family_member(self, request):
+        """
+        가족 구성원에게 초대 코드를 문자로 전송합니다.
+        """
+        user = request.user
+        family = user.profile.family
+
+        if not family:
+            logger.error("가족 정보가 없습니다.")
+            return Response({'message': '가족 정보가 없습니다.'}, status=400)
+
+        phone_number = request.data.get('phone_number')
+        if not phone_number:
+            logger.error("전화번호가 제공되지 않았습니다.")
+            return Response({'message': '전화번호가 제공되지 않았습니다.'}, status=400)
+
+        invite_code = str(random.randint(100000, 999999))
+        subject = "[모해 - 초대코드]"
+        content = f"모해에서 {user.username}님이 가족 구성원 초대 코드를 발송했습니다.\n초대 코드 : {invite_code}"
+
+        presult, wresult = send_sms(subject, content, phone_number, "01083562203")
+
+        if presult or wresult:
+            logger.info("초대 코드 문자 전송 성공")
+            return Response({'message': '초대 코드 문자 전송 성공', 'invite_code': invite_code})
+        else:
+            logger.error("초대 코드 문자 전송 실패")
+            return Response({'message': '초대 코드 문자 전송 실패'}, status=500)
 
 class FamilyViewSet(viewsets.ModelViewSet):
     queryset = Family.objects.all()
@@ -121,3 +157,34 @@ class FamilyViewSet(viewsets.ModelViewSet):
             return Response({'status': 'Family joined successfully.'})
         except Family.DoesNotExist:
             return Response({'error': 'Invalid family code.'}, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def invite_family_member(request):
+    """
+    가족 구성원에게 초대 코드를 문자로 전송합니다.
+    """
+    user = request.user
+    family = user.profile.family
+
+    if not family:
+        logger.error("가족 정보가 없습니다.")
+        return JsonResponse({'message': '가족 정보가 없습니다.'}, status=400)
+
+    phone_number = request.data.get('phone_number')
+    if not phone_number:
+        logger.error("전화번호가 제공되지 않았습니다.")
+        return JsonResponse({'message': '전화번호가 제공되지 않았습니다.'}, status=400)
+
+    invite_code = str(random.randint(100000, 999999))
+    subject = "[모해 - 초대코드]"
+    content = f"모해에서 {user.username}님이 가족 구성원 초대 코드를 발송했습니다.\n초대 코드 : {invite_code}"
+
+    presult, wresult = send_sms(subject, content, phone_number, "01083562203")
+
+    if presult or wresult:
+        logger.info("초대 코드 문자 전송 성공")
+        return JsonResponse({'message': '초대 코드 문자 전송 성공', 'invite_code': invite_code})
+    else:
+        logger.error("초대 코드 문자 전송 실패")
+        return JsonResponse({'message': '초대 코드 문자 전송 실패'}, status=500)

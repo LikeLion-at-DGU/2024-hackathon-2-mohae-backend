@@ -3,7 +3,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ProfileSerializer
+from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ProfileSerializer, UpdateProfileSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 # 회원가입 뷰
@@ -32,6 +32,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 # 프로필 조회 뷰
 class ProfileView(generics.RetrieveAPIView):
     serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.profile
+
+# 프로필 업데이트 뷰
+class UpdateProfileView(generics.UpdateAPIView):
+    serializer_class = UpdateProfileSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):

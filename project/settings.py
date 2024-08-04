@@ -148,6 +148,10 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # 기본 설정, DB를 사용한 세션 백엔드
+SESSION_COOKIE_AGE = 1209600  # 2주 동안 세션 유지 (단위: 초)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 브라우저 닫아도 세션 유지
+
 ROOT_URLCONF = 'project.urls'
 
 TEMPLATES = [

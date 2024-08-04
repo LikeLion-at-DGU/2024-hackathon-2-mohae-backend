@@ -98,7 +98,15 @@ class CommentViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(photo__family=user_family, photo__status='Y')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        photo_id = self.request.data.get('photo')
+        if not photo_id:
+            raise ValidationError('Photo ID is required to create a comment.')
+        try:
+            photo = Photo.objects.get(id=photo_id, family=self.request.user.profile.family)
+        except Photo.DoesNotExist:
+            raise ValidationError('Photo does not exist or does not belong to your family.')
+        
+        serializer.save(user=self.request.user, photo=photo)
 
     def perform_update(self, serializer):
         comment = self.get_object()
@@ -110,6 +118,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         if instance.user != self.request.user:
             raise PermissionDenied('삭제권한이 없습니다.')
         instance.delete()
+
 
 class PhotoBookViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]

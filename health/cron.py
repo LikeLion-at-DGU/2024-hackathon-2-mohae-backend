@@ -7,9 +7,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class SendAppointmentReminderCronJob(CronJobBase):
-    RUN_AT_TIMES = ['03:20']  # 테스트 목적으로 03:20에 실행 (적절한 시간으로 설정)
+    RUN_EVERY_MINS = 1  # 매 분마다 실행 (테스트용)
 
-    schedule = Schedule(run_at_times=RUN_AT_TIMES)
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
     code = 'health.send_appointment_reminder_cron_job'  # 고유 코드
 
     def do(self):
@@ -23,8 +23,11 @@ class SendAppointmentReminderCronJob(CronJobBase):
             logger.info(f"Found {appointments.count()} appointments for tomorrow.")
 
             for appointment in appointments:
-                appointment.send_notification()
-                logger.info(f"Notification sent for appointment {appointment.id}")
+                result = appointment.send_notification()
+                if result:
+                    logger.info(f"Notification sent for appointment {appointment.id}")
+                else:
+                    logger.error(f"Failed to send notification for appointment {appointment.id}")
 
         except Exception as e:
             logger.error(f"Error in cron job: {e}", exc_info=True)

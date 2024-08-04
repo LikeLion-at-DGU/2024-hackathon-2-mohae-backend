@@ -55,6 +55,7 @@ class Challenge(models.Model):
     end_date = models.DateField(default=timezone.now)
     participants = models.ManyToManyField(User, related_name='challenges')
     family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True, blank=True)  # 가족 필드 추가
+    image = models.ImageField(upload_to='challenges/', null=True, blank=True)  # 이미지 필드 추가
 
     def __str__(self):
         return self.title

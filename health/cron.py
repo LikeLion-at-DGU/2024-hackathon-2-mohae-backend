@@ -7,10 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class SendAppointmentReminderCronJob(CronJobBase):
-    RUN_EVERY_MINS = 1  # 매 분마다 실행 (테스트용)
+    RUN_AT_TIMES = ['09:00']  # 매일 오전 9시에 실행
 
-    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
-    code = 'health.send_appointment_reminder_cron_job'  # 고유 코드
+    schedule = Schedule(run_at_times=RUN_AT_TIMES)
+    code = 'health.send_appointment_reminder_cron_job'
 
     def do(self):
         try:

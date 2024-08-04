@@ -5,8 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from users.serializers import ProfileSerializer  # ProfileSerializer import 추가
+from users.serializers import ProfileSerializer
 from rest_framework import status
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 class MedicationViewSet(viewsets.ModelViewSet):
     queryset = Medication.objects.all()
@@ -63,6 +66,21 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@login_required
+def send_manual_notification(request, appointment_id, patient_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    patient = get_object_or_404(User, id=patient_id)
+
+    if request.user.profile.family != patient.profile.family:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    result = appointment.send_notification_to_patient(patient)
+
+    if result:
+        return JsonResponse({'status': 'Notification sent'})
+    else:
+        return JsonResponse({'status': 'Failed to send notification'}, status=500)
 
 class ChallengeViewSet(viewsets.ModelViewSet):
     queryset = Challenge.objects.all()

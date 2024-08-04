@@ -20,10 +20,10 @@ class MedicationSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'family')  # user, family 필드를 읽기 전용으로 설정
 
 class ChallengeSerializer(serializers.ModelSerializer):
-    participants = serializers.StringRelatedField(many=True)
+    participants = serializers.PrimaryKeyRelatedField(read_only=True)
     family = serializers.PrimaryKeyRelatedField(read_only=True)  # 읽기 전용으로 설정
 
     class Meta:
         model = Challenge
         fields = '__all__'
-        read_only_fields = ('family',)
+        read_only_fields = ('family', 'participants')

@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 # 긴급 상황 알림 메시지 설정
 subject = "긴급상황 발생"
-content = "<모해 - 긴급 문자> 모해에서 {user.username}님이 긴급 문자를 발송했습니다. 즉시 확인 바랍니다."
 callback = "01083562203"  # 발신자 전화번호
 
 def get_family_members_phone_numbers(user):
@@ -37,6 +36,7 @@ def send_emergency_sms(user):
     긴급 상황 발생 시 가족 구성원에게 문자 메시지를 전송합니다.
     """
     phone_numbers = get_family_members_phone_numbers(user)
+    content = f"<모해 - 긴급 문자> \n모해에서 {user.username}님이 긴급 문자를 발송했습니다. \n즉시 확인 바랍니다."
     
     if not phone_numbers:
         logger.error("가족 구성원 목록이 비어 있거나 가족 구성원의 전화번호가 없습니다.")

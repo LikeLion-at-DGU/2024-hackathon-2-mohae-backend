@@ -29,39 +29,6 @@ class RegisterView(generics.CreateAPIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-
-        user = serializer.user
-        refresh = RefreshToken.for_user(user)
-        
-        response = Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }, status=status.HTTP_200_OK)
-
-        # 쿠키 설정
-        response.set_cookie(
-            key='access_token',
-            value=str(refresh.access_token),
-            httponly=True,
-            secure=False,  # 배포 시 True로 변경
-            samesite='Lax',
-        )
-        response.set_cookie(
-            key='refresh_token',
-            value=str(refresh),
-            httponly=True,
-            secure=False,  # 배포 시 True로 변경
-            samesite='Lax',
-        )
-
-        return response
-
 # 프로필 조회 뷰
 class ProfileView(generics.RetrieveAPIView):
     serializer_class = ProfileSerializer

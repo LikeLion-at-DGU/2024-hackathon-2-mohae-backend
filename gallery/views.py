@@ -1,15 +1,12 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Album, Photo, Comment, Favorite
 from .serializers import AlbumSerializer, PhotoSerializer, CommentSerializer, FavoriteSerializer, PhotoBookSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from users.models import Family
-from rest_framework.exceptions import PermissionDenied
-from fpdf import FPDF
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from accounts.models import Profile
-from rest_framework.exceptions import ValidationError
+from fpdf import FPDF
 from django.conf import settings
 import os
 
@@ -61,10 +58,18 @@ class PhotoViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('삭제권한이 없습니다.')
         instance.delete()
 
+class FavoriteViewSet(viewsets.ModelViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
     @action(detail=True, methods=['post'])
     def favorite(self, request, pk=None):
         try:
-            photo = self.get_object()
+            photo = Photo.objects.get(pk=pk)
         except Photo.DoesNotExist:
             return Response({'status': 'Photo not found.'}, status=status.HTTP_404_NOT_FOUND)
         
@@ -75,7 +80,11 @@ class PhotoViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def unfavorite(self, request, pk=None):
-        photo = self.get_object()
+        try:
+            photo = Photo.objects.get(pk=pk)
+        except Photo.DoesNotExist:
+            return Response({'status': 'Photo not found.'}, status=status.HTTP_404_NOT_FOUND)
+
         Favorite.objects.filter(user=request.user, photo=photo).delete()
         return Response({'status': '즐겨찾기에서 삭제되었습니다.'}, status=status.HTTP_200_OK)
 
@@ -101,14 +110,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         if instance.user != self.request.user:
             raise PermissionDenied('삭제권한이 없습니다.')
         instance.delete()
-
-class FavoriteViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Favorite.objects.all()
-    serializer_class = FavoriteSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
 
 class PhotoBookViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]

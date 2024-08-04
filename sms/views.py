@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # 긴급 상황 알림 메시지 설정
 subject = "긴급상황 발생"
-content = "긴급상황이 발생했습니다. 즉시 확인 바랍니다."
+content = "<모해 - 긴급 문자> 모해에서 {user.username}님이 긴급 문자를 발송했습니다. 즉시 확인 바랍니다."
 callback = "01083562203"  # 발신자 전화번호
 
 def get_family_members_phone_numbers(user):

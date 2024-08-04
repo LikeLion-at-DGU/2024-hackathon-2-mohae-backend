@@ -35,10 +35,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         Profile.objects.create(user=user, **profile_data)
         return user
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
         token['username'] = user.username
         return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        
+        # 사용자 정보를 추가로 반환합니다.
+        data.update({'user': {
+            'id': self.user.id,
+            'username': self.user.username,
+            'email': self.user.email,
+        }})
+        
+        return data

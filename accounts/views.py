@@ -36,7 +36,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        user = serializer.validated_data['user']
+        user = serializer.user
         refresh = RefreshToken.for_user(user)
         
         response = Response({
@@ -69,4 +69,3 @@ class ProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user.profile
-

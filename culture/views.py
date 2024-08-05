@@ -1,18 +1,24 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import *
 from .serializers import *
+from accounts.models import Profile
 
-class CulturalActivityViewSet(viewsets.ModelViewSet):
-    queryset = CulturalActivity.objects.filter(status='Y')
-    serializer_class = CulturalActivitySerializer
+class ReservationViewSet(viewsets.ModelViewSet):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
+    permission_classes = [IsAuthenticated]
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def reserve(self, request, pk=None):
-        activity = self.get_object()
+    def create(self, request, *args, **kwargs):
+        activity_id = request.data.get('activity')
+        subcategory_id = request.data.get('subcategory')
+        people = request.data.get('people')
+        price = request.data.get('price')
+        
+        activity = get_object_or_404(CulturalActivity, id=activity_id)
         user = request.user
 
         confirmed_reservations_count = ConfirmedReservation.objects.filter(reservation__activity=activity).count()
@@ -24,27 +30,37 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
             if reservation.status == 'C':
                 return Response({'message': '이미 예약된 활동입니다.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                try:
-                    reservation.status = 'C'
-                    reservation.save()
-                    ConfirmedReservation.objects.create(reservation=reservation)
-                except Exception as e:
-                    raise ValidationError({'message': '예약 확정 중 오류가 발생했습니다.', 'details': str(e)})
+                reservation.status = 'C'
+                reservation.people = people
+                reservation.price = price
+                reservation.subcategory_id = subcategory_id
+                reservation.save()
+                ConfirmedReservation.objects.create(reservation=reservation)
                 return Response({'message': '예약이 확정되었습니다.', 'status': 'C'}, status=status.HTTP_200_OK)
         
-        try:
-            ConfirmedReservation.objects.create(reservation=reservation)
-        except Exception as e:
-            raise ValidationError({'message': '예약 확정 중 오류가 발생했습니다.', 'details': str(e)})
-
+        reservation.people = people
+        reservation.price = price
+        reservation.subcategory_id = subcategory_id
         reservation.status = 'C'
         reservation.save()
-        serializer = ReservationSerializer(reservation)
+        ConfirmedReservation.objects.create(reservation=reservation)
+        serializer = self.get_serializer(reservation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def toggle_like(self, request, pk=None):
-        activity = self.get_object()
+class LikeViewSet(viewsets.ModelViewSet):
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # 현재 사용자의 가족이 누른 모든 좋아요를 반환
+        user_profile = Profile.objects.get(user=self.request.user)
+        family = user_profile.family
+        return Like.objects.filter(user__profile__family=family)
+
+    def create(self, request, *args, **kwargs):
+        activity_id = request.data.get('activity')
+        activity = get_object_or_404(CulturalActivity, id=activity_id)
         user = request.user
 
         like, created = Like.objects.get_or_create(activity=activity, user=user)
@@ -53,22 +69,6 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Like removed.'}, status=status.HTTP_200_OK)
         
         return Response({'message': 'Liked.'}, status=status.HTTP_201_CREATED)
-
-class MyReservationsViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = ConfirmedReservationSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return ConfirmedReservation.objects.filter(reservation__user=self.request.user)
-
-class MyLikesViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = CulturalActivitySerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        liked_activities = Like.objects.filter(user=user).values_list('activity', flat=True)
-        return CulturalActivity.objects.filter(id__in=liked_activities)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()

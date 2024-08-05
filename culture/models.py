@@ -73,12 +73,15 @@ class Reservation(models.Model):
     activity = models.ForeignKey(CulturalActivity, on_delete=models.CASCADE)  # 예약된 활동
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # 예약한 사용자
     reserved_at = models.DateTimeField(auto_now_add=True)  # 예약된 시간
+    people = models.PositiveIntegerField(default=1)  # 예약 인원 수
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # 가격
     STATUS_CHOICES = [
         ('P', 'Pending'),
         ('C', 'Confirmed'),
         ('N', 'Cancelled'),
     ]
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')  # 예약 상태
+
     def __str__(self):
         return f"Reservation for {self.activity.title} by {self.user.email}"
 

@@ -4,8 +4,8 @@ from .views import CulturalActivityViewSet, MyReservationsViewSet, MyLikesViewSe
 
 router = DefaultRouter(trailing_slash=False)
 router.register('activities', CulturalActivityViewSet, basename='activities')
-router.register('my_reservations', MyReservationsViewSet, basename='my_reservations')
-router.register('my_likes', MyLikesViewSet, basename='my_likes')
+router.register('reservations', MyReservationsViewSet, basename='reservations')
+router.register('likes', MyLikesViewSet, basename='likes')
 router.register('categories', CategoryViewSet, basename='categories')
 router.register('subcategories', SubCategoryViewSet, basename='subcategories')
 

@@ -144,7 +144,10 @@ class FamilyViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Family.objects.filter(created_by=self.request.user)
+        user_profile = self.request.user.profile
+        if user_profile.family:
+            return Family.objects.filter(pk=user_profile.family.pk)
+        return Family.objects.none()
     
 
     def perform_create(self, serializer):

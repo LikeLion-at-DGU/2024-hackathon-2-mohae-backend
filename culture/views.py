@@ -1,12 +1,11 @@
 from django.shortcuts import get_object_or_404
-from pydantic import ValidationError
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
 from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer, LikeSerializer
 from accounts.models import Profile
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 
 class CulturalActivityViewSet(viewsets.ModelViewSet):
     queryset = CulturalActivity.objects.filter(status='Y')
@@ -22,6 +21,8 @@ class ReservationViewSet(viewsets.ModelViewSet):
         subcategory_id = request.data.get('subcategory', None)
         people = request.data.get('people', 1)  # 기본값 1
         price = request.data.get('price', None)
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
 
         activity = get_object_or_404(CulturalActivity, id=activity_id)
         user = request.user
@@ -35,9 +36,9 @@ class ReservationViewSet(viewsets.ModelViewSet):
             'people': people,
             'price': price,
             'status': 'C',
-            'start_date': activity.start_date,
-            'end_date': activity.end_date,
-            'thumbnail': activity.thumbnail if activity.thumbnail else None
+            'start_date': start_date,
+            'end_date': end_date,
+            'thumbnail': activity.thumbnail
         }
         if subcategory_id:
             reservation_data['subcategory'] = subcategory_id
@@ -45,12 +46,12 @@ class ReservationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=reservation_data, context={'request': request})
         try:
             serializer.is_valid(raise_exception=True)
-            reservation = serializer.save(user=user)
+            reservation = serializer.save()
 
             ConfirmedReservation.objects.create(
                 reservation=reservation,
-                start_date=activity.start_date,
-                end_date=activity.end_date,
+                start_date=start_date,
+                end_date=end_date,
                 thumbnail=activity.thumbnail if activity.thumbnail else None
             )
 

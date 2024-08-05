@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from pydantic import ValidationError
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -42,21 +43,26 @@ class ReservationViewSet(viewsets.ModelViewSet):
             reservation_data['subcategory'] = subcategory_id
 
         serializer = self.get_serializer(data=reservation_data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        reservation = serializer.save()
+        try:
+            serializer.is_valid(raise_exception=True)
+            reservation = serializer.save(user=user)
 
-        ConfirmedReservation.objects.create(
-            reservation=reservation,
-            start_date=activity.start_date,
-            end_date=activity.end_date,
-            thumbnail=activity.thumbnail
-        )
+            ConfirmedReservation.objects.create(
+                reservation=reservation,
+                start_date=activity.start_date,
+                end_date=activity.end_date,
+                thumbnail=activity.thumbnail
+            )
 
-        response_data = serializer.data
-        response_data['activity'] = CulturalActivitySerializer(activity).data
+            response_data = serializer.data
+            response_data['activity'] = CulturalActivitySerializer(activity).data
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+            headers = self.get_success_headers(serializer.data)
+            return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+        except ValidationError as e:
+            return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()

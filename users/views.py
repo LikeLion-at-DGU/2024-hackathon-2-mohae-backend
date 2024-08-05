@@ -16,10 +16,12 @@ import random
 logger = logging.getLogger(__name__)
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return Profile.objects.filter(user=self.request.user)
+    
     def get_object(self):
         return self.request.user.profile  # 로그인한 사용자의 프로필을 반환
 
@@ -141,8 +143,6 @@ class FamilyViewSet(viewsets.ModelViewSet):
         return Family.objects.filter(created_by=self.request.user)
 
     def perform_create(self, serializer):
-        if self.request.user.profile.family:
-            raise PermissionDenied('You are already part of a family.')
         family = serializer.save(created_by=self.request.user)
         profile = Profile.objects.get(user=self.request.user)
         profile.family = family
@@ -162,15 +162,13 @@ class FamilyViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def join_by_code(self, request):
-        if request.user.profile.family:
-            return Response({'error': 'You are already part of a family.'}, status=400)
         family_code = request.data.get('family_code')
         try:
             family = Family.objects.get(family_code=family_code)
             profile = Profile.objects.get(user=request.user)
             profile.family = family
             profile.save()
-            return Response({'status': 'Successfully joined the family.'})
+            return Response({'status': 'Family joined successfully.'})
         except Family.DoesNotExist:
             return Response({'error': 'Invalid family code.'}, status=400)
         

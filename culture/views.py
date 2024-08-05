@@ -33,7 +33,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
             'activity': activity.id,
             'people': people,
             'price': price,
-            'status': 'C'
+            'status': 'C',
+            'start_date': activity.start_date,
+            'end_date': activity.end_date,
+            'thumbnail': activity.thumbnail
         }
         if subcategory_id:
             reservation_data['subcategory'] = subcategory_id
@@ -42,9 +45,13 @@ class ReservationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         reservation = serializer.save()
 
-        ConfirmedReservation.objects.create(reservation=reservation)
+        ConfirmedReservation.objects.create(
+            reservation=reservation,
+            start_date=activity.start_date,
+            end_date=activity.end_date,
+            thumbnail=activity.thumbnail
+        )
 
-        # CulturalActivity 정보를 포함하여 반환
         response_data = serializer.data
         response_data['activity'] = CulturalActivitySerializer(activity).data
 

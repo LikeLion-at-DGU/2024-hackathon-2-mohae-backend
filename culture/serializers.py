@@ -44,6 +44,9 @@ class ReservationSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user
         validated_data['user'] = user
+        validated_data['start_date'] = validated_data['activity'].start_date
+        validated_data['end_date'] = validated_data['activity'].end_date
+        validated_data['thumbnail'] = validated_data['activity'].thumbnail
         return super().create(validated_data)
 
 # 확정된 예약 직렬화기

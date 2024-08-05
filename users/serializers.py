@@ -16,7 +16,6 @@ class BucketListSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     family_code = serializers.CharField(write_only=True, required=False)
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Profile
@@ -25,6 +24,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         family_code = validated_data.pop('family_code', None)
         if family_code:
+            if instance.family:
+                raise serializers.ValidationError("You are already part of a family.")
             try:
                 family = Family.objects.get(family_code=family_code)
                 instance.family = family
@@ -34,7 +35,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class FamilySerializer(serializers.ModelSerializer):
     profiles = ProfileSerializer(many=True, read_only=True)
-    family_code = serializers.CharField(read_only=True)  # 읽기 전용으로 설정
+    family_code = serializers.CharField(read_only=True)
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:

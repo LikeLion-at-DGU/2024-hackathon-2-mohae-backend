@@ -73,7 +73,7 @@ class BucketListViewSet(viewsets.ModelViewSet):
         instance.delete()  # 권한이 있는 경우, 삭제 수행
 
 class MyPageViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['get'])
     def bucketlists(self, request):
@@ -144,6 +144,8 @@ class FamilyViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
+        if self.request.user.profile.family:
+            raise PermissionDenied('You are already part of a family.')
         family = serializer.save(created_by=self.request.user)
         profile = Profile.objects.get(user=self.request.user)
         profile.family = family
@@ -163,6 +165,8 @@ class FamilyViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def join_by_code(self, request):
+        if request.user.profile.family:
+            return Response({'error': 'You are already part of a family.'}, status=400)
         family_code = request.data.get('family_code')
         try:
             family = Family.objects.get(family_code=family_code)
@@ -176,9 +180,6 @@ class FamilyViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def invite_family_member(request):
-    """
-    가족 구성원에게 초대 코드를 문자로 전송합니다.
-    """
     user = request.user
     family = user.profile.family
 

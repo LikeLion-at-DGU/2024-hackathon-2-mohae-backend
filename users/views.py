@@ -2,14 +2,13 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action
 from .models import BucketList, Family
 from .serializers import BucketListSerializer, FamilySerializer, LikeSerializer, CulturalActivitySerializer, ConfirmedReservationSerializer, ProfileSerializer
 from culture.models import Like, ConfirmedReservation, CulturalActivity
 from django.db.models import Q
 from accounts.models import Profile
-from sms.sms_service import send_sms
-from django.http import JsonResponse
+from sms.sms_service import send_sms  # 추가
 import logging
 import random
 
@@ -43,28 +42,28 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class BucketListViewSet(viewsets.ModelViewSet):
-    queryset = BucketList.objects.all()
-    serializer_class = BucketListSerializer
-    permission_classes = [IsAuthenticated]
+    queryset = BucketList.objects.all()  # 모든 BucketList 객체를 쿼리셋으로 정의
+    serializer_class = BucketListSerializer  # 이 뷰셋에서 사용할 시리얼라이저 클래스 지정
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
 
     def get_queryset(self):
-        user_family = self.request.user.profile.family
-        return self.queryset.filter(family=user_family, status='Y')
+        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
+        return self.queryset.filter(family=user_family, status='Y')  # 해당 가족의 활성화된 버킷리스트 필터링
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, family=self.request.user.profile.family)
+        serializer.save(user=self.request.user, family=self.request.user.profile.family)  # 버킷리스트 생성 시, 사용자와 가족 정보 저장
 
     def perform_update(self, serializer):
-        bucketlist = self.get_object()
+        bucketlist = self.get_object()  # 현재 객체를 가져옴
         if bucketlist.user != self.request.user:
-            raise PermissionDenied('편집 권한이 없습니다.')
-        serializer.save()
+            raise PermissionDenied('편집 권한이 없습니다.')  # 현재 사용자가 객체의 소유자가 아닌 경우, 권한 없음 예외 발생
+        serializer.save()  # 권한이 있는 경우, 업데이트 수행
 
     def perform_destroy(self, instance):
-        bucketlist = self.get_object()
+        bucketlist = self.get_object()  # 현재 객체를 가져옴
         if bucketlist.user != self.request.user:
-            raise PermissionDenied('삭제 권한이 없습니다.')
-        instance.delete()
+            raise PermissionDenied('삭제 권한이 없습니다.')  # 현재 사용자가 객체의 소유자가 아닌 경우, 권한 없음 예외 발생
+        instance.delete()  # 권한이 있는 경우, 삭제 수행
 
 class MyPageViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -95,9 +94,9 @@ class MyPageViewSet(viewsets.ViewSet):
             return Response({'error': 'No family found'}, status=404)
         confirmed_reservations = ConfirmedReservation.objects.filter(
             reservation__user__profile__family=user_family
-        ).order_by('-confirmed_at')
-        serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)
-        return Response(serializer.data)
+        ).order_by('-confirmed_at')  # 가족의 확정된 예약을 확정된 시간 기준으로 내림차순 정렬
+        serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
+        return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
 
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
@@ -152,7 +151,7 @@ class FamilyViewSet(viewsets.ModelViewSet):
         if user_profile.family:
             return Family.objects.filter(pk=user_profile.family.pk)
         return Family.objects.none()
-    
+
     def perform_create(self, serializer):
         family = serializer.save(created_by=self.request.user)
         profile = Profile.objects.get(user=self.request.user)
@@ -182,35 +181,3 @@ class FamilyViewSet(viewsets.ModelViewSet):
             return Response({'status': 'Family joined successfully.'})
         except Family.DoesNotExist:
             return Response({'error': 'Invalid family code.'}, status=400)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def invite_family_member(request):
-    user = request.user
-    family = user.profile.family
-
-    if not family:
-        logger.error("가족 정보가 없습니다.")
-        return JsonResponse({'message': '가족 정보가 없습니다.'}, status=400)
-
-    phone_numbers = request.data.get('phone_numbers')
-    if not phone_numbers:
-        logger.error("전화번호가 제공되지 않았습니다.")
-        return JsonResponse({'message': '전화번호가 제공되지 않았습니다.'}, status=400)
-
-    invite_code = str(random.randint(100000, 999999))
-    subject = "[모해 - 초대코드]"
-    content = f"모해에서 {user.username}님이 가족 구성원 초대 코드를 발송했습니다.\n초대 코드 : {invite_code}"
-
-    success_count = 0
-    for phone_number in phone_numbers:
-        presult, wresult = send_sms(subject, content, phone_number, "01083562203")
-        if presult or wresult:
-            success_count += 1
-
-    if success_count:
-        logger.info(f"초대 코드 문자 전송 성공 ({success_count}/{len(phone_numbers)})")
-        return JsonResponse({'message': f'초대 코드 문자 전송 성공 ({success_count}/{len(phone_numbers)})', 'invite_code': invite_code})
-    else:
-        logger.error("초대 코드 문자 전송 실패")
-        return JsonResponse({'message': '초대 코드 문자 전송 실패'}, status=500)

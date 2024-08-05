@@ -15,7 +15,7 @@ class CulturalActivityViewSet(viewsets.ModelViewSet):
         activity = self.get_object()
         user = request.user
 
-        confirmed_reservations_count = Reservation.objects.filter(activity=activity, status='C').count()
+        confirmed_reservations_count = ConfirmedReservation.objects.filter(reservation__activity=activity).count()
         if confirmed_reservations_count >= activity.available_slots:
             return Response({'message': '예약 가능한 자원이 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 

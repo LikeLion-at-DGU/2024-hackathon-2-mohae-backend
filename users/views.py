@@ -20,8 +20,13 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        # 로그인한 사용자의 프로필만 반환
+        return Profile.objects.filter(user=self.request.user)
+
     def get_object(self):
-        return self.request.user.profile  # 로그인한 사용자의 프로필을 반환
+        # 로그인한 사용자의 프로필을 반환
+        return self.request.user.profile
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -88,11 +93,10 @@ class MyPageViewSet(viewsets.ViewSet):
             return Response({'error': 'No family found'}, status=404)
         confirmed_reservations = ConfirmedReservation.objects.filter(
             reservation__user__profile__family=user_family
-        ).order_by('-confirmed_at')
-        serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)
-        return Response(serializer.data)
-    
-    
+        ).order_by('-confirmed_at')  # 가족의 확정된 예약을 확정된 시간 기준으로 내림차순 정렬
+        serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
+        return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
+
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
         try:

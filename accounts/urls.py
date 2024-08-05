@@ -14,4 +14,5 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),  # DRF 로그인 뷰 포함
     path('profile/', ProfileView.as_view(), name='profile'),  # 프로필 조회 URL 추가
     path('profile/update/', UpdateProfileView.as_view(), name='profile_update'),  # 프로필 수정 URL 추가
+    path('logout/', LogoutView.as_view(), name='logout'),  # 로그아웃 URL 추가
 ]

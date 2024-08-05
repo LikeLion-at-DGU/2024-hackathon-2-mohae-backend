@@ -51,6 +51,8 @@ class ReservationSerializer(serializers.ModelSerializer):
 
 # 확정된 예약 직렬화기
 class ConfirmedReservationSerializer(serializers.ModelSerializer):
+    reservation = ReservationSerializer()
+
     class Meta:
         model = ConfirmedReservation
         fields = '__all__'

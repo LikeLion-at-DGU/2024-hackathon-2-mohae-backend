@@ -37,7 +37,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             'status': 'C',
             'start_date': activity.start_date,
             'end_date': activity.end_date,
-            'thumbnail': activity.thumbnail
+            'thumbnail': activity.thumbnail if activity.thumbnail else None
         }
         if subcategory_id:
             reservation_data['subcategory'] = subcategory_id
@@ -51,7 +51,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 reservation=reservation,
                 start_date=activity.start_date,
                 end_date=activity.end_date,
-                thumbnail=activity.thumbnail
+                thumbnail=activity.thumbnail if activity.thumbnail else None
             )
 
             response_data = serializer.data
@@ -63,6 +63,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()

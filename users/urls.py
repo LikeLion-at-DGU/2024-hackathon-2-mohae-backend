@@ -5,7 +5,7 @@ from .views import BucketListViewSet, MyPageViewSet, FamilyViewSet, ProfileViewS
 router = DefaultRouter(trailing_slash=False)
 router.register('bucketlists', BucketListViewSet)
 router.register('family', FamilyViewSet)
-router.register('profiles', ProfileViewSet, basename='profile')
+router.register('profiles', ProfileViewSet, basename='profiles')
 
 mypage_router = DefaultRouter(trailing_slash=False)
 mypage_router.register('mypage', MyPageViewSet, basename='mypage')

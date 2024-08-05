@@ -130,11 +130,9 @@ class FamilyViewSet(viewsets.ModelViewSet):
     serializer_class = FamilySerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        user_profile = self.request.user.profile
-        return user_profile.family
-
     def perform_create(self, serializer):
+        if self.request.user.profile.family:
+            raise PermissionDenied('You are already part of a family.')
         family = serializer.save(created_by=self.request.user)
         profile = Profile.objects.get(user=self.request.user)
         profile.family = family
@@ -143,24 +141,26 @@ class FamilyViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         family = self.get_object()
         if family.created_by != self.request.user:
-            raise PermissionDenied('편집 권한이 없습니다.')
+            raise PermissionDenied('You do not have permission to edit this family.')
         serializer.save()
 
     def perform_destroy(self, instance):
         family = self.get_object()
         if family.created_by != self.request.user:
-            raise PermissionDenied('삭제 권한이 없습니다.')
+            raise PermissionDenied('You do not have permission to delete this family.')
         instance.delete()
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def join_by_code(self, request):
+        if request.user.profile.family:
+            return Response({'error': 'You are already part of a family.'}, status=400)
         family_code = request.data.get('family_code')
         try:
             family = Family.objects.get(family_code=family_code)
             profile = Profile.objects.get(user=request.user)
             profile.family = family
             profile.save()
-            return Response({'status': 'Family joined successfully.'})
+            return Response({'status': 'Successfully joined the family.'})
         except Family.DoesNotExist:
             return Response({'error': 'Invalid family code.'}, status=400)
         

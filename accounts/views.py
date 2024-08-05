@@ -5,6 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ProfileSerializer, UpdateProfileSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.views import APIView
 
 # 회원가입 뷰
 class RegisterView(generics.CreateAPIView):
@@ -44,3 +45,16 @@ class UpdateProfileView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user.profile
+    
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)

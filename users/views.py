@@ -16,16 +16,12 @@ import random
 logger = logging.getLogger(__name__)
 
 class ProfileViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        # 로그인한 사용자의 프로필만 반환
-        return Profile.objects.filter(user=self.request.user)
-
     def get_object(self):
-        # 로그인한 사용자의 프로필을 반환
-        return self.request.user.profile
+        return self.request.user.profile  # 로그인한 사용자의 프로필을 반환
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)

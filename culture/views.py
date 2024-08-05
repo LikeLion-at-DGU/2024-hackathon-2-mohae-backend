@@ -4,7 +4,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError, ParseError, NotAuthenticated
-
+from rest_framework.decorators import action
 from accounts.models import Profile
 from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
 from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer, LikeSerializer
@@ -177,7 +177,8 @@ class LikeViewSet(viewsets.ModelViewSet):
         
         return Response({'message': 'Liked.'}, status=status.HTTP_201_CREATED)
     
-    def destroy(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def remove_like(self, request):
         activity_id = request.data.get('activity')
         user = request.user
 

@@ -12,4 +12,5 @@ router.register('likes', LikeViewSet, basename='likes')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('likes/remove_like/', LikeViewSet.as_view({'post': 'remove_like'}), name='remove-like'),
 ]

@@ -37,6 +37,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)  # 현재 로그인된 사용자의 user 값을 자동으로 할당
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 class BucketListViewSet(viewsets.ModelViewSet):
     queryset = BucketList.objects.all()  # 모든 BucketList 객체를 쿼리셋으로 정의
@@ -141,6 +145,7 @@ class FamilyViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Family.objects.filter(created_by=self.request.user)
+    
 
     def perform_create(self, serializer):
         family = serializer.save(created_by=self.request.user)

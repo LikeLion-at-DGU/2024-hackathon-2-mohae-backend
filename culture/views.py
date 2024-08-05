@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
 from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer, LikeSerializer
 from accounts.models import Profile
+from rest_framework.exceptions import NotFound
 
 class CulturalActivityViewSet(viewsets.ModelViewSet):
     queryset = CulturalActivity.objects.filter(status='Y')
@@ -17,10 +18,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         activity_id = request.data.get('activity')
-        subcategory_id = request.data.get('subcategory')
-        people = request.data.get('people')
-        price = request.data.get('price')
-        
+        subcategory_id = request.data.get('subcategory', None)
+        people = request.data.get('people', 1)  # 기본값 1
+        price = request.data.get('price', None)
+
         activity = get_object_or_404(CulturalActivity, id=activity_id)
         user = request.user
 
@@ -36,7 +37,8 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 reservation.status = 'C'
                 reservation.people = people
                 reservation.price = price
-                reservation.subcategory_id = subcategory_id
+                if subcategory_id:
+                    reservation.subcategory_id = subcategory_id
                 reservation.save()
                 ConfirmedReservation.objects.create(reservation=reservation)
                 serializer = self.get_serializer(reservation)
@@ -44,7 +46,8 @@ class ReservationViewSet(viewsets.ModelViewSet):
         
         reservation.people = people
         reservation.price = price
-        reservation.subcategory_id = subcategory_id
+        if subcategory_id:
+            reservation.subcategory_id = subcategory_id
         reservation.status = 'C'
         reservation.save()
         ConfirmedReservation.objects.create(reservation=reservation)
@@ -57,8 +60,11 @@ class LikeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # 현재 사용자의 가족이 누른 모든 좋아요를 반환
-        user_profile = Profile.objects.get(user=self.request.user)
+        try:
+            user_profile = Profile.objects.get(user=self.request.user)
+        except Profile.DoesNotExist:
+            raise NotFound('Profile matching query does not exist.')
+        
         family = user_profile.family
         return Like.objects.filter(user__profile__family=family)
 

@@ -22,12 +22,12 @@ class AlbumViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(family=user_family, status='Y')
 
     def perform_create(self, serializer):
-        user_profile = Profile.objects.get(user=self.request.user)
+        user_profile = self.request.user.profile
         family = user_profile.family
         if family is None:
             raise ValidationError("Family is not set for the user's profile.")
-        
         serializer.save(user=self.request.user, family=family)
+
 
 class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all()
@@ -36,17 +36,15 @@ class PhotoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_family = self.request.user.profile.family
-        return self.queryset.filter(family=user_family, status='Y').order_by('-created_at')
+        if user_family:
+            return self.queryset.filter(family=user_family, status='Y').order_by('-created_at')
+        return self.queryset.none()
 
     def perform_create(self, serializer):
-        try:
-            user_profile = Profile.objects.get(user=self.request.user)
-            family = user_profile.family
-            if family is None:
-                raise ValidationError("Family is not set for the user's profile.")
-        except Profile.DoesNotExist:
-            raise ValidationError("Profile for the user does not exist.")
-        
+        user_profile = self.request.user.profile
+        family = user_profile.family
+        if family is None:
+            raise ValidationError("Family is not set for the user's profile.")
         serializer.save(user=self.request.user, family=family)
 
     def perform_update(self, serializer):
@@ -75,6 +73,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
         except Album.DoesNotExist:
             return Response({'error': '앨범이 존재하지 않습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
+
 class FavoriteViewSet(viewsets.ModelViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
@@ -87,7 +86,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         photo_id = request.data.get('photo')
-        photo = get_object_or_404(Photo, id=photo_id)
+        photo = get_object_or_404(Photo, id=photo_id, family=request.user.profile.family)
         user = request.user
 
         # 이미 즐겨찾기에 추가된 사진을 확인하고 204 NO CONTENT 반환
@@ -102,6 +101,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
@@ -133,6 +133,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         if instance.user != self.request.user:
             raise PermissionDenied('삭제권한이 없습니다.')
         instance.delete()
+
 
 class PhotoBookViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]

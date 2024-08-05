@@ -19,11 +19,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class PhotoSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     profile = UserProfileSerializer(source='user.profile', read_only=True)
-    album = serializers.PrimaryKeyRelatedField(queryset=Album.objects.all(), allow_null=True, required=False)  # 앨범 필드 수정
+    album = serializers.PrimaryKeyRelatedField(queryset=Album.objects.all(), allow_null=True, required=False)
 
     class Meta:
         model = Photo
         fields = ['id', 'user', 'profile', 'album', 'image', 'title', 'description', 'created_at', 'status', 'family']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            user = request.user
+            validated_data['user'] = user
+            validated_data['family'] = user.profile.family
+        return super().create(validated_data)
+
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())

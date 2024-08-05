@@ -16,12 +16,22 @@ import random
 logger = logging.getLogger(__name__)
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        # 로그인한 사용자의 프로필만 반환
+        return Profile.objects.filter(user=self.request.user)
+
     def get_object(self):
-        return self.request.user.profile  # 로그인한 사용자의 프로필을 반환
+        # 로그인한 사용자의 프로필을 반환
+        return self.request.user.profile
+
+    def retrieve(self, request, *args, **kwargs):
+        # 로그인한 사용자의 프로필을 반환
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -29,7 +39,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-
         return Response(serializer.data)
 
     def perform_update(self, serializer):

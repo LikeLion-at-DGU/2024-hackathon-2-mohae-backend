@@ -58,6 +58,22 @@ class PhotoViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('삭제권한이 없습니다.')
         instance.delete()
 
+    @action(detail=True, methods=['post'])
+    def add_to_album(self, request, pk=None):
+        photo = self.get_object()
+        if photo.user != request.user:
+            raise PermissionDenied('편집권한이 없습니다.')
+        
+        album_id = request.data.get('album')
+        try:
+            album = Album.objects.get(id=album_id, family=request.user.profile.family)
+            photo.album = album
+            photo.save()
+            return Response({'status': '사진이 앨범에 추가되었습니다.'}, status=status.HTTP_200_OK)
+        except Album.DoesNotExist:
+            return Response({'error': '앨범이 존재하지 않습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class FavoriteViewSet(viewsets.ModelViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer

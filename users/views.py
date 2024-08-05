@@ -24,18 +24,21 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return Profile.objects.filter(user=self.request.user)
 
     def get_object(self):
-        # 로그인한 사용자의 프로필을 반환
-        return self.request.user.profile
+        # URL로부터 pk를 가져오고 현재 사용자와 관련된 프로필을 가져옵니다.
+        obj = super().get_object()
+        if obj.user != self.request.user:
+            raise PermissionDenied("You do not have permission to access this profile.")
+        return obj
 
     def retrieve(self, request, *args, **kwargs):
-        # 로그인한 사용자의 프로필을 반환
-        instance = self.get_object()
+        # 현재 사용자의 프로필을 반환
+        instance = self.request.user.profile
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
+        instance = self.request.user.profile
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -43,6 +46,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save()
+
 
 class BucketListViewSet(viewsets.ModelViewSet):
     queryset = BucketList.objects.all()  # 모든 BucketList 객체를 쿼리셋으로 정의

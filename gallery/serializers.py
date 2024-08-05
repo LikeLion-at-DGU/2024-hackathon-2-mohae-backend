@@ -3,6 +3,7 @@
 from rest_framework import serializers
 from .models import Album, Photo, Comment, Favorite
 from accounts.models import Profile
+from accounts.serializers import ProfileSerializer
 
 class AlbumSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
@@ -36,6 +37,7 @@ class PhotoSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    profile = ProfileSerializer(source='user.profile', read_only=True)
 
     class Meta:
         model = Comment

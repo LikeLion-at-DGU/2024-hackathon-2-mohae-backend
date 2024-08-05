@@ -162,11 +162,7 @@ class LikeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        try:
-            user_profile = Profile.objects.get(user=self.request.user)
-        except Profile.DoesNotExist:
-            raise NotFound('Profile matching query does not exist.')
-        
+        user_profile = Profile.objects.get(user=self.request.user)
         family = user_profile.family
         return Like.objects.filter(user__profile__family=family)
 
@@ -177,7 +173,17 @@ class LikeViewSet(viewsets.ModelViewSet):
 
         like, created = Like.objects.get_or_create(activity=activity, user=user)
         if not created:
-            like.delete()
-            return Response({'message': 'Like removed.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Already liked.'}, status=status.HTTP_200_OK)
         
         return Response({'message': 'Liked.'}, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        activity_id = request.data.get('activity')
+        user = request.user
+
+        try:
+            like = Like.objects.get(activity_id=activity_id, user=user)
+            like.delete()
+            return Response({'message': 'Like removed.'}, status=status.HTTP_204_NO_CONTENT)
+        except Like.DoesNotExist:
+            return Response({'message': 'Like does not exist.'}, status=status.HTTP_404_NOT_FOUND)

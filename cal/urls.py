@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
 
+
+app_name = 'cal'
+
 urlpatterns = [
     path('events/', views.create_event, name='create_event'),
     path('events/list/', views.list_events, name='list_events'),  # 이벤트 목록 조회 추가

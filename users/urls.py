@@ -2,9 +2,12 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import BucketListViewSet, MyPageViewSet, FamilyViewSet, ProfileViewSet, invite_family_member
 
+
+app_name = 'users'
+
 router = DefaultRouter(trailing_slash=False)
-router.register('bucketlists', BucketListViewSet)
-router.register('family', FamilyViewSet)
+router.register('bucketlists', BucketListViewSet, basename='bucketlists')
+router.register('family', FamilyViewSet, basename='family')
 router.register('profiles', ProfileViewSet, basename='profiles')
 
 mypage_router = DefaultRouter(trailing_slash=False)

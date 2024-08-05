@@ -31,7 +31,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
         reservation_data = {
             'activity': activity_id,
-            'user': user.id,
             'people': people,
             'price': price,
             'status': 'C'
@@ -39,7 +38,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         if subcategory_id:
             reservation_data['subcategory'] = subcategory_id
 
-        serializer = self.get_serializer(data=reservation_data)
+        serializer = self.get_serializer(data=reservation_data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         reservation = serializer.save()
 
@@ -47,6 +46,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()

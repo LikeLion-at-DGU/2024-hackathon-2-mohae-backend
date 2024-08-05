@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ProfileSerializer, UpdateProfileSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
+from .models import Profile
 
 # 회원가입 뷰
 class RegisterView(generics.CreateAPIView):
@@ -36,7 +37,10 @@ class ProfileView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return self.request.user.profile
+        user = self.request.user
+        if not hasattr(user, 'profile'):
+            Profile.objects.create(user=user)
+        return user.profile
 
 # 프로필 업데이트 뷰
 class UpdateProfileView(generics.UpdateAPIView):
@@ -44,8 +48,12 @@ class UpdateProfileView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return self.request.user.profile
+        user = self.request.user
+        if not hasattr(user, 'profile'):
+            Profile.objects.create(user=user)
+        return user.profile
     
+# 로그아웃 뷰
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 

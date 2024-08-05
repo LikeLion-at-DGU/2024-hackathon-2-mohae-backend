@@ -80,32 +80,24 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
-    
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # 현재 사용자가 누른 즐겨찾기만 반환
+        return Favorite.objects.filter(user=self.request.user)
 
-    @action(detail=True, methods=['post'])
-    def favorite(self, request, pk=None):
-        try:
-            photo = Photo.objects.get(pk=pk)
-        except Photo.DoesNotExist:
-            return Response({'status': 'Photo not found.'}, status=status.HTTP_404_NOT_FOUND)
-        
-        favorite, created = Favorite.objects.get_or_create(user=request.user, photo=photo)
+    def create(self, request, *args, **kwargs):
+        photo_id = request.data.get('photo')
+        photo = get_object_or_404(Photo, id=photo_id)
+        user = request.user
+
+        favorite, created = Favorite.objects.get_or_create(photo=photo, user=user)
         if not created:
-            return Response({'status': '이미 즐겨찾기에 추가되었습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'status': '즐겨찾기에 추가되었습니다.'}, status=status.HTTP_200_OK)
+            return Response({'message': '이미 즐겨찾기에 추가되었습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({'message': '즐겨찾기에 추가되었습니다.'}, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'])
-    def unfavorite(self, request, pk=None):
-        try:
-            photo = Photo.objects.get(pk=pk)
-        except Photo.DoesNotExist:
-            return Response({'status': 'Photo not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        Favorite.objects.filter(user=request.user, photo=photo).delete()
-        return Response({'status': '즐겨찾기에서 삭제되었습니다.'}, status=status.HTTP_200_OK)
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()

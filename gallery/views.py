@@ -81,7 +81,6 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # 현재 사용자가 누른 즐겨찾기만 반환
         return Favorite.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
@@ -93,7 +92,8 @@ class FavoriteViewSet(viewsets.ModelViewSet):
             return Response({'message': '이미 즐겨찾기에 추가된 사진입니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
         favorite = Favorite.objects.create(photo=photo, user=user)
-        return Response({'message': '즐겨찾기에 추가되었습니다.'}, status=status.HTTP_201_CREATED)
+        serializer = self.get_serializer(favorite)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

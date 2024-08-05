@@ -1,10 +1,9 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import *
-from .serializers import *
+from .models import CulturalActivity, Reservation, ConfirmedReservation, Like
+from .serializers import CulturalActivitySerializer, ReservationSerializer, ConfirmedReservationSerializer, LikeSerializer
 from accounts.models import Profile
 
 class CulturalActivityViewSet(viewsets.ModelViewSet):
@@ -40,7 +39,8 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 reservation.subcategory_id = subcategory_id
                 reservation.save()
                 ConfirmedReservation.objects.create(reservation=reservation)
-                return Response({'message': '예약이 확정되었습니다.', 'status': 'C'}, status=status.HTTP_200_OK)
+                serializer = self.get_serializer(reservation)
+                return Response(serializer.data, status=status.HTTP_200_OK)
         
         reservation.people = people
         reservation.price = price
@@ -73,11 +73,3 @@ class LikeViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Like removed.'}, status=status.HTTP_200_OK)
         
         return Response({'message': 'Liked.'}, status=status.HTTP_201_CREATED)
-
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-class SubCategoryViewSet(viewsets.ModelViewSet):
-    queryset = SubCategory.objects.all()
-    serializer_class = SubCategorySerializer

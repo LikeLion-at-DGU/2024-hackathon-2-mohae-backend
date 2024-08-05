@@ -34,6 +34,7 @@ class CulturalActivitySerializer(serializers.ModelSerializer):
 # 예약 직렬화기
 class ReservationSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    activity = CulturalActivitySerializer(read_only=True)  # CulturalActivitySerializer 중첩
 
     class Meta:
         model = Reservation

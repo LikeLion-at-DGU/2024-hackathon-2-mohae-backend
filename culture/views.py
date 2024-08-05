@@ -7,6 +7,10 @@ from .models import *
 from .serializers import *
 from accounts.models import Profile
 
+class CulturalActivityViewSet(viewsets.ModelViewSet):
+    queryset = CulturalActivity.objects.filter(status='Y')
+    serializer_class = CulturalActivitySerializer
+
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer

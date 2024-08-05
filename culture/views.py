@@ -30,7 +30,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             return Response({'message': '예약 가능한 자원이 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
         reservation_data = {
-            'activity': activity_id,
+            'activity': activity.id,
             'people': people,
             'price': price,
             'status': 'C'
@@ -43,10 +43,13 @@ class ReservationViewSet(viewsets.ModelViewSet):
         reservation = serializer.save()
 
         ConfirmedReservation.objects.create(reservation=reservation)
-        
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+        # CulturalActivity 정보를 포함하여 반환
+        response_data = serializer.data
+        response_data['activity'] = CulturalActivitySerializer(activity).data
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()

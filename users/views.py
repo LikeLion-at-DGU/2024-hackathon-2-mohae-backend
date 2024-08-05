@@ -16,7 +16,6 @@ import random
 logger = logging.getLogger(__name__)
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
 
@@ -38,7 +37,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_update(self, serializer):
-        serializer.save()
+        serializer.save(user=self.request.user)  # 현재 로그인된 사용자의 user 값을 자동으로 할당
+
 
 class BucketListViewSet(viewsets.ModelViewSet):
     queryset = BucketList.objects.all()  # 모든 BucketList 객체를 쿼리셋으로 정의

@@ -16,6 +16,7 @@ class BucketListSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     family_code = serializers.CharField(write_only=True, required=False)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Profile
@@ -32,7 +33,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             except Family.DoesNotExist:
                 raise serializers.ValidationError("Invalid family code.")
         return super().update(instance, validated_data)
-
+    
+    
 class FamilySerializer(serializers.ModelSerializer):
     profiles = ProfileSerializer(many=True, read_only=True)
     family_code = serializers.CharField(read_only=True)

@@ -93,7 +93,9 @@ class MyPageViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def confirmed_reservations(self, request):
         user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
-        confirmed_reservations = ConfirmedReservation.objects.filter(reservation__user__profile__family=user_family)  # 가족의 확정된 예약 필터링
+        confirmed_reservations = ConfirmedReservation.objects.filter(
+            reservation__user__profile__family=user_family
+        ).order_by('-confirmed_at')  # 가족의 확정된 예약을 확정된 시간 기준으로 내림차순 정렬
         serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
         return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
 

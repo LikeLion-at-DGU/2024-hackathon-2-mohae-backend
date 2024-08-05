@@ -29,30 +29,24 @@ class ReservationViewSet(viewsets.ModelViewSet):
         if confirmed_reservations_count >= activity.available_slots:
             return Response({'message': '예약 가능한 자원이 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        reservation, created = Reservation.objects.get_or_create(activity=activity, user=user)
-        if not created:
-            if reservation.status == 'C':
-                return Response({'message': '이미 예약된 활동입니다.'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                reservation.status = 'C'
-                reservation.people = people
-                reservation.price = price
-                if subcategory_id:
-                    reservation.subcategory_id = subcategory_id
-                reservation.save()
-                ConfirmedReservation.objects.create(reservation=reservation)
-                serializer = self.get_serializer(reservation)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        reservation.people = people
-        reservation.price = price
+        reservation_data = {
+            'activity': activity_id,
+            'user': user.id,
+            'people': people,
+            'price': price,
+            'status': 'C'
+        }
         if subcategory_id:
-            reservation.subcategory_id = subcategory_id
-        reservation.status = 'C'
-        reservation.save()
+            reservation_data['subcategory'] = subcategory_id
+
+        serializer = self.get_serializer(data=reservation_data)
+        serializer.is_valid(raise_exception=True)
+        reservation = serializer.save()
+
         ConfirmedReservation.objects.create(reservation=reservation)
-        serializer = self.get_serializer(reservation)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()

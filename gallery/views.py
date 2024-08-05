@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -88,10 +89,10 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         photo = get_object_or_404(Photo, id=photo_id)
         user = request.user
 
-        favorite, created = Favorite.objects.get_or_create(photo=photo, user=user)
-        if not created:
-            return Response({'message': '이미 즐겨찾기에 추가되었습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+        if Favorite.objects.filter(photo=photo, user=user).exists():
+            return Response({'message': '이미 즐겨찾기에 추가된 사진입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        favorite = Favorite.objects.create(photo=photo, user=user)
         return Response({'message': '즐겨찾기에 추가되었습니다.'}, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):

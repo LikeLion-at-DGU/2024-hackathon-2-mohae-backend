@@ -130,10 +130,6 @@ class FamilyViewSet(viewsets.ModelViewSet):
     serializer_class = FamilySerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        user_profile = self.request.user.profile
-        return user_profile.family
-
     def perform_create(self, serializer):
         if self.request.user.profile.family:
             raise PermissionDenied('You are already part of a family.')

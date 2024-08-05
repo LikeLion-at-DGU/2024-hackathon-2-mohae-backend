@@ -64,28 +64,35 @@ class MyPageViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def bucketlists(self, request):
-        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
-        bucketlists = BucketList.objects.filter(family=user_family, status='Y')  # 해당 가족의 활성화된 버킷리스트 필터링
-        serializer = BucketListSerializer(bucketlists, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
-        return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
+        user_family = request.user.profile.family
+        if not user_family:
+            return Response({'error': 'No family found'}, status=404)
+        bucketlists = BucketList.objects.filter(family=user_family, status='Y')
+        serializer = BucketListSerializer(bucketlists, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def likes(self, request):
-        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
-        likes = Like.objects.filter(user__profile__family=user_family).select_related('activity')  # 해당 가족의 좋아요 항목 필터링
-        activities = CulturalActivity.objects.filter(id__in=likes.values('activity'))  # 좋아요가 눌린 활동들 필터링
-        serializer = CulturalActivitySerializer(activities, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
-        return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
+        user_family = request.user.profile.family
+        if not user_family:
+            return Response({'error': 'No family found'}, status=404)
+        likes = Like.objects.filter(user__profile__family=user_family).select_related('activity')
+        activities = CulturalActivity.objects.filter(id__in=likes.values('activity'))
+        serializer = CulturalActivitySerializer(activities, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def confirmed_reservations(self, request):
-        user_family = self.request.user.profile.family  # 현재 요청한 사용자의 가족을 가져옴
+        user_family = request.user.profile.family
+        if not user_family:
+            return Response({'error': 'No family found'}, status=404)
         confirmed_reservations = ConfirmedReservation.objects.filter(
             reservation__user__profile__family=user_family
-        ).order_by('-confirmed_at')  # 가족의 확정된 예약을 확정된 시간 기준으로 내림차순 정렬
-        serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)  # 시리얼라이저를 사용해 데이터 직렬화
-        return Response(serializer.data)  # 직렬화된 데이터를 JSON 응답으로 반환
-
+        ).order_by('-confirmed_at')
+        serializer = ConfirmedReservationSerializer(confirmed_reservations, many=True)
+        return Response(serializer.data)
+    
+    
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
         try:
@@ -129,6 +136,9 @@ class FamilyViewSet(viewsets.ModelViewSet):
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Family.objects.filter(created_by=self.request.user)
 
     def perform_create(self, serializer):
         if self.request.user.profile.family:

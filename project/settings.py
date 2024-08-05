@@ -69,21 +69,38 @@ CRON_CLASSES = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
-        'file': {
+        'django_file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'django_cron.log',  # 로그 파일 이름
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'formatter': 'verbose',
+        },
+        'health_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'health.log'),
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['django_file'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'health': {
-            'handlers': ['file'],
+            'handlers': ['health_file'],
             'level': 'DEBUG',
             'propagate': True,
         },

@@ -7,6 +7,7 @@ from .serializers import AlbumSerializer, PhotoSerializer, CommentSerializer, Fa
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from accounts.models import Profile
+from datetime import timezone
 from fpdf import FPDF
 from django.conf import settings
 import os
@@ -74,24 +75,26 @@ class PhotoViewSet(viewsets.ModelViewSet):
         except Album.DoesNotExist:
             return Response({'error': '앨범이 존재하지 않습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
-
 class FavoriteViewSet(viewsets.ModelViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Favorite.objects.filter(user=self.request.user)
+        # 현재 로그인한 사용자의 가족의 즐겨찾기를 조회
+        user_family = self.request.user.profile.family
+        return Favorite.objects.filter(user__profile__family=user_family)
 
     def create(self, request, *args, **kwargs):
         photo_id = request.data.get('photo')
         photo = get_object_or_404(Photo, id=photo_id)
         user = request.user
 
-        if Favorite.objects.filter(photo=photo, user=user).exists():
-            return Response({'message': '이미 즐겨찾기에 추가된 사진입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        # 이미 즐겨찾기에 추가된 사진을 확인하고 204 NO CONTENT 반환
+        favorite, created = Favorite.objects.get_or_create(photo=photo, user=user)
+        if not created:
+            return Response({'message': '이미 즐겨찾기에 추가된 사진입니다.'}, status=status.HTTP_204_NO_CONTENT)
 
-        favorite = Favorite.objects.create(photo=photo, user=user)
         serializer = self.get_serializer(favorite)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -131,7 +134,6 @@ class CommentViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('삭제권한이 없습니다.')
         instance.delete()
 
-
 class PhotoBookViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
@@ -153,9 +155,10 @@ class PhotoBookViewSet(viewsets.ViewSet):
 
             pdf_output_path = os.path.join(settings.MEDIA_ROOT, 'photobooks')
             os.makedirs(pdf_output_path, exist_ok=True)
-            pdf_file = os.path.join(pdf_output_path, f'photobook_{request.user.id}.pdf')
+            # 파일 이름에 타임스탬프를 추가하여 파일명 충돌 방지
+            pdf_file = os.path.join(pdf_output_path, f'photobook_{request.user.id}_{timezone.now().strftime("%Y%m%d%H%M%S")}.pdf')
             pdf.output(pdf_file)
 
-            pdf_url = f'{settings.MEDIA_URL}photobooks/photobook_{request.user.id}.pdf'
+            pdf_url = f'{settings.MEDIA_URL}photobooks/photobook_{request.user.id}_{timezone.now().strftime("%Y%m%d%H%M%S")}.pdf'
             return Response({'pdf_url': pdf_url}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

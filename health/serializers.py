@@ -23,6 +23,8 @@ class ChallengeSerializer(serializers.ModelSerializer):
     participants = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     family = serializers.PrimaryKeyRelatedField(read_only=True)
     image = serializers.ImageField(required=False)
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
 
     class Meta:
         model = Challenge

@@ -63,42 +63,11 @@ class Appointment(models.Model):
             logger.error(f"Error sending SMS: {e}", exc_info=True)
             return False
 
-    def send_notification_to_patient(self, patient):
-        from jmunja import smssend
-        uid = "vini0420"
-        upw = "097affdae04ad0a9357177454f4d8a"
-        subject = "병원 예약 알림"
-        content = (
-            f"{patient.username}님, {self.location}에서 "
-            f"{self.appointment_datetime.strftime('%Y-%m-%d %H:%M:%S')}에 예약되어 있습니다."
-        )
-        hpno = patient.profile.phone_number  # 진료자 전화번호 필요
-        callback = "01083562203"
-
-        try:
-            jphone = smssend.JmunjaPhone(uid, upw)
-            presult = jphone.send(subject, content, hpno)
-            logger.info(f"Phone result: {presult}")
-
-            jweb = smssend.JmunjaWeb(uid, upw)
-            wresult = jweb.send(subject, content, hpno, callback)
-            logger.info(f"Web result: {wresult}")
-
-            if presult or wresult:
-                logger.info(f"Notification sent to patient {patient.id} for appointment {self.id}")
-            else:
-                logger.error(f"Failed to send notification to patient {patient.id} for appointment {self.id}")
-
-            return presult or wresult
-        except Exception as e:
-            logger.error(f"Error sending SMS to patient: {e}", exc_info=True)
-            return False
-
 class Challenge(models.Model):
     title = models.CharField(max_length=255)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
-    participants = models.ManyToManyField(User, related_name='challenges')
+    participants = models.ManyToManyField(User, related_name='challenges', null=True, blank=True)
     family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True, blank=True)
     image = models.ImageField(upload_to='challenges/', null=True, blank=True)
 

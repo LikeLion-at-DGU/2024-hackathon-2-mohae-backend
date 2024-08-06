@@ -4,7 +4,9 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from .models import BucketList, Family
-from .serializers import BucketListSerializer, FamilySerializer, LikeSerializer, CulturalActivitySerializer, ConfirmedReservationSerializer, ProfileSerializer
+from .serializers import BucketListSerializer, FamilySerializer, LikeSerializer, CulturalActivitySerializer, ProfileSerializer
+from culture.serializers import ConfirmedReservationSerializer
+
 from culture.models import Like, ConfirmedReservation, CulturalActivity
 from django.db.models import Q
 from accounts.models import Profile

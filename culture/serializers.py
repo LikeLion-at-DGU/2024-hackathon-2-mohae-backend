@@ -22,6 +22,7 @@ class CulturalActivitySerializer(serializers.ModelSerializer):
     reservation_status = serializers.SerializerMethodField()
     category = CategorySerializer(read_only=True)
     subcategory = SubCategorySerializer(read_only=True)
+    thumbnail = serializers.ImageField()
 
     class Meta:
         model = CulturalActivity
@@ -33,6 +34,7 @@ class CulturalActivitySerializer(serializers.ModelSerializer):
 
 # 수정 코드
 class ReservationSerializer(serializers.ModelSerializer):
+    activity = CulturalActivitySerializer(read_only=True)
     thumbnail = serializers.ImageField(allow_null=True, required=False)
 
     class Meta:
@@ -69,11 +71,11 @@ class ReservationSerializer(serializers.ModelSerializer):
 # 확정된 예약 직렬화기
 class ConfirmedReservationSerializer(serializers.ModelSerializer):
     reservation = ReservationSerializer()
+    thumbnail = serializers.ImageField(source='reservation.thumbnail', read_only=True)
 
     class Meta:
         model = ConfirmedReservation
         fields = '__all__'
-
 # 좋아요 직렬화기
 class LikeSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())

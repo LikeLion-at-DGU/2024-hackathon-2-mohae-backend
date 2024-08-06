@@ -67,7 +67,7 @@ class Challenge(models.Model):
     title = models.CharField(max_length=255)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
-    participants = models.ManyToManyField(User, related_name='challenges', null=True, blank=True)
+    participants = models.ManyToManyField(User, related_name='challenges', blank=True)
     family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True, blank=True)
     image = models.ImageField(upload_to='challenges/', null=True, blank=True)
 

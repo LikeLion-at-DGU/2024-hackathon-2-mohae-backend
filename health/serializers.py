@@ -20,13 +20,14 @@ class MedicationSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'family')
 
 class ChallengeSerializer(serializers.ModelSerializer):
-    participants = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    participants = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     family = serializers.PrimaryKeyRelatedField(read_only=True)
     image = serializers.ImageField(required=False)
     start_date = serializers.DateField()
     end_date = serializers.DateField()
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Challenge
         fields = '__all__'
-        read_only_fields = ('family', 'participants')
+        read_only_fields = ('family', 'user')

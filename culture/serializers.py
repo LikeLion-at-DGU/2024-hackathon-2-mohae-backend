@@ -32,8 +32,9 @@ class CulturalActivitySerializer(serializers.ModelSerializer):
         confirmed_reservations_count = ConfirmedReservation.objects.filter(reservation__activity=obj).count()
         return 'Full' if confirmed_reservations_count >= obj.available_slots else 'Available'
 
+# 수정 코드
 class ReservationSerializer(serializers.ModelSerializer):
-    activity = CulturalActivitySerializer(read_only=True)
+    thumbnail = serializers.ImageField(allow_null=True, required=False)
 
     class Meta:
         model = Reservation
@@ -43,17 +44,38 @@ class ReservationSerializer(serializers.ModelSerializer):
             'activity': {'queryset': CulturalActivity.objects.all()},
         }
 
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+# 기존 코드
+# # 예약 직렬화기
+# class ReservationSerializer(serializers.ModelSerializer):
+#     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+#     activity = serializers.PrimaryKeyRelatedField(queryset=CulturalActivity.objects.all())
+
+#     class Meta:
+#         model = Reservation
+#         fields = '__all__'
+
+#     def create(self, validated_data):
+#         request = self.context.get('request')
+#         user = request.user
+#         validated_data['user'] = user
+#         validated_data['start_date'] = validated_data['activity'].start_date
+#         validated_data['end_date'] = validated_data['activity'].end_date
+#         validated_data['thumbnail'] = validated_data['activity'].thumbnail
+#         return super().create(validated_data)
+
+# 확정된 예약 직렬화기
 class ConfirmedReservationSerializer(serializers.ModelSerializer):
     reservation = ReservationSerializer()
-    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = ConfirmedReservation
-        fields = ['reservation', 'confirmed_at', 'thumbnail']  # Explicitly list fields
+        fields = '__all__'
 
-    def get_thumbnail(self, obj):
-        return obj.reservation.activity.thumbnail.url if obj.reservation.activity.thumbnail else None
-
+        
 # 좋아요 직렬화기
 class LikeSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AskQuestionView, UserProfileView, RandomQuestionsView
+from .views import AskQuestionView, UserProfileView
 
 
 app_name = 'api'

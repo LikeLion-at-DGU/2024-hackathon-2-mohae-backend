@@ -50,7 +50,12 @@ class ConfirmedReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConfirmedReservation
-        fields = '__all__'
+        fields = ['reservation', 'confirmed_at', 'thumbnail']  # Explicitly list fields
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['thumbnail'] = instance.reservation.activity.thumbnail.url if instance.reservation.activity.thumbnail else None
+        return representation
 
 # 좋아요 직렬화기
 class LikeSerializer(serializers.ModelSerializer):

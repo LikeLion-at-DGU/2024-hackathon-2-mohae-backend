@@ -46,7 +46,7 @@ class ReservationSerializer(serializers.ModelSerializer):
 
 class ConfirmedReservationSerializer(serializers.ModelSerializer):
     reservation = ReservationSerializer()
-    thumbnail = serializers.ImageField(source='reservation.thumbnail', read_only=True)  # Ensure thumbnail is included
+    thumbnail = serializers.ImageField(source='reservation.activity.thumbnail', read_only=True)  # Ensure thumbnail is included
 
     class Meta:
         model = ConfirmedReservation

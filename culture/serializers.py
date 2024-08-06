@@ -34,7 +34,6 @@ class CulturalActivitySerializer(serializers.ModelSerializer):
 
 class ReservationSerializer(serializers.ModelSerializer):
     activity = CulturalActivitySerializer(read_only=True)
-    thumbnail = serializers.ImageField(read_only=True)  # Ensure thumbnail is included
 
     class Meta:
         model = Reservation
@@ -46,16 +45,14 @@ class ReservationSerializer(serializers.ModelSerializer):
 
 class ConfirmedReservationSerializer(serializers.ModelSerializer):
     reservation = ReservationSerializer()
-    thumbnail = serializers.ImageField(source='reservation.activity.thumbnail', read_only=True)  # Ensure thumbnail is included
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = ConfirmedReservation
         fields = ['reservation', 'confirmed_at', 'thumbnail']  # Explicitly list fields
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['thumbnail'] = instance.reservation.activity.thumbnail.url if instance.reservation.activity.thumbnail else None
-        return representation
+    def get_thumbnail(self, obj):
+        return obj.reservation.activity.thumbnail.url if obj.reservation.activity.thumbnail else None
 
 # 좋아요 직렬화기
 class LikeSerializer(serializers.ModelSerializer):

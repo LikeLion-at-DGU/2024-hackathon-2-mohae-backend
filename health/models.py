@@ -70,7 +70,7 @@ class Challenge(models.Model):
     participants = models.ManyToManyField(User, related_name='challenges', blank=True)
     family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True, blank=True)
     image = models.ImageField(upload_to='challenges/', null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_challenges')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_challenges',null=True, blank=True)
 
     def __str__(self):
         return self.title
